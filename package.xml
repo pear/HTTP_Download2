@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.20 $ -->
+<!-- $Revision: 1.21 $ -->
 <package version="1.0">
   <name>HTTP_Download</name>
   <license>PHP</license>
   <summary>Send HTTP Downloads</summary>
   <description>
-Provides an interface to easily send hidden files or any arbitrary data to the client through HTTP. It features HTTP caching, compression and ranges (partial downloads and resuming).
+Provides an interface to easily send hidden files or any arbitrary data to the client through HTTP. 
+
+It features HTTP caching, compression, ranges (partial downloads and resuming) and kind of a throttling mechanism.
   </description>
   <maintainers>
     <maintainer>
@@ -16,13 +18,18 @@ Provides an interface to easily send hidden files or any arbitrary data to the c
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9.0</version>
-    <date>2004-07-19</date>
+    <version>0.10.0</version>
+    <date>2004-08-31</date>
     <state>beta</state>
     <notes>
-+ Now a Content-Length header is sent if the whole uncompressed 
-  download is delivered. (satisfying some download accelerators)
-+ Added support for ZIP archives through Archive_ZIP (CVS only)
+* Adjusted cache headers to force IE to revalidate
+* Attempt to fix Bug #2110 (long delay until "Save as..." popup)
++ Implemented kind of a throttling mechanism
+  This can be done by setting $bufferSize through 
+  HTTP_Download::setBufferSize($bytes) and adjusting $throttleDelay
+  through HTTP_Download::setThrottleDelay($seconds), e.g. a
+  buffer size of 25600 bytes and a throttle delay of 1 second
+  will lead to a download rate of approximatly 25 KB/s.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="HTTP">
