@@ -650,9 +650,7 @@ class HTTP_Download
             unset($this->headers['Last-Modified']);
         }
         
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
+        while (@ob_end_clean());
         
         if ($this->gzip) {
             @ob_start('ob_gzhandler');
@@ -666,7 +664,7 @@ class HTTP_Download
         } else {
             $this->HTTP->sendStatusCode(200);
             $chunks = array(array(0, $this->size));
-            if (!$this->gzip) {
+            if (!$this->gzip && count(ob_list_handlers()) < 2) {
                 $this->headers['Content-Length'] = $this->size;
             }
         }
