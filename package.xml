@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.25 $ -->
+<!-- $Revision: 1.26 $ -->
+<!DOCTYPE package SYSTEM "http://pear.php.net/dtd/package-1.1">
 <package version="1.0">
-  <name>HTTP_Download</name>
-  <license>PHP</license>
-  <summary>Send HTTP Downloads</summary>
-  <description>
+ <name>HTTP_Download</name>
+ <summary>Send HTTP Downloads</summary>
+ <description>
 Provides an interface to easily send hidden files or any arbitrary data to 
 HTTP clients.  HTTP_Download can gain its data from variables, files or
 stream resources.
@@ -15,47 +15,49 @@ It features:
  - On-the-fly gzip-compression
  - Ranges (partial downloads and resuming)
  - Delivery of on-the-fly generated archives through Archive_Tar and Archive_Zip
-  </description>
-  <maintainers>
-    <maintainer>
-      <user>mike</user>
-      <name>Michael Wallner</name>
-      <email>mike@php.net</email>
-      <role>lead</role>
-    </maintainer>
-  </maintainers>
-  <release>
-    <version>1.0.0RC2</version>
-    <date>2004-12-16</date>
-    <state>beta</state>
-    <notes>
+ </description>
+ <license>PHP</license>
+ <maintainers>
+  <maintainer>
+   <user>mike</user>
+   <role>lead</role>
+   <name>Michael Wallner</name>
+   <email>mike@php.net</email>
+  </maintainer>
+ </maintainers>
+ <release>
+  <license>PHP</license>
+  <version>1.0.0RC2</version>
+  <state>beta</state>
+  <date>2004-12-17</date>
+  <notes>
 <![CDATA[
 2nd RC for stable release
 * Bundled PgLOB stream wrapper (sending PgSQL BLOBs through setResource())
 * ETag is now customizable through setEtag()
 * Now using md5(serialize(stat($file))) instead of md5_file($file) for etag generation
 ]]>
-    </notes>
-    <filelist>
-      <dir name="/" baseinstalldir="HTTP">
-        <file role="php">Download.php</file>
-        <dir name="Download">
-          <file role="php">PgLOB.php</file>
-        </dir>
-      </dir>
-      <file role="test" install-as="send.php">tests/send.php</file>
-      <file role="test" install-as="testcase.php">tests/testcase.php</file>
-      <file role="test" install-as="data.txt">tests/data.txt</file>
-    </filelist>
-  </release>
+  </notes>
+  <filelist>
+   <dir name="/" baseinstalldir="HTTP">
+    <file role="php">Download.php</file>
+    <dir name="Download">
+     <file role="php">PgLOB.php</file>
+    </dir>
+   </dir>
+   <file role="test" install-as="send.php">tests/send.php</file>
+   <file role="test" install-as="testcase.php">tests/testcase.php</file>
+   <file role="test" install-as="data.txt">tests/data.txt</file>
+  </filelist>
   <deps>
-    <dep type="pkg" rel="has" optional="no">PEAR</dep>
-    <dep type="pkg" rel="has" optional="no">HTTP_Header</dep>
-    <dep type="pkg" rel="has" optional="yes">Archive_Tar</dep>
-    <dep type="pkg" rel="has" optional="yes">Archive_Zip</dep>
-    <dep type="ext" rel="has" optional="no">pcre</dep>
-    <dep type="ext" rel="has" optional="yes">mime_magic</dep>
-    <dep type="php" rel="ge" optional="yes" version="4.3.0" />
-    <dep type="php" rel="ge" optional="no" version="4.2.0" />
+   <dep type="pkg" rel="has" optional="no">PEAR</dep>
+   <dep type="pkg" rel="has" optional="no">HTTP_Header</dep>
+   <dep type="pkg" rel="has" optional="yes">Archive_Tar</dep>
+   <dep type="pkg" rel="has" optional="yes">Archive_Zip</dep>
+   <dep type="ext" rel="has" optional="no">pcre</dep>
+   <dep type="ext" rel="has" optional="yes">mime_magic</dep>
+   <dep type="php" rel="ge" optional="yes" version="4.3.0" />
+   <dep type="php" rel="ge" optional="no" version="4.2.0" />
   </deps>
+ </release>
 </package>
