@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!-- $Revision: 1.1 $ -->
+<package version="1.0">
+	<name>HTTP_Download</name>
+	<license>PHP</license>
+	<summary>Send HTTP Downloads</summary>
+	<description>
+Provides an easy interface to send hidden files or any arbitrary data to the client over HTTP.
+It features HTTP Caching, Compression and Ranges (partial downloads and resuming).
+
+NOTE: Don't use with PHP's on-the-fly output compression, because files may be sent coruppted.
+	</description>
+	<maintainers>
+		<maintainer>
+			<user>mike</user>
+			<name>Michael Wallner</name>
+			<email>mike@php.net</email>
+			<role>lead</role>
+		</maintainer>
+	</maintainers>
+	<release>
+		<version>0.1.1</version>
+		<date>2003-10-02</date>
+		<state>beta</state>
+		<notes>
+Initial release.
+		</notes>
+		<filelist>
+			<dir name="/" baseinstalldir="HTTP">
+				<file role="php">Download.php</file>
+			</dir>
+		</filelist>
+	</release>
+	<deps>
+		<dep type="pkg" rel="has">HTTP_Header</dep>
+	</deps>
+</package>
