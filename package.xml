@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.28 $ -->
+<!-- $Revision: 1.29 $ -->
 <!DOCTYPE package SYSTEM "http://pear.php.net/dtd/package-1.1">
 <package version="1.0">
  <name>HTTP_Download</name>
@@ -27,16 +27,15 @@ It features:
  </maintainers>
  <release>
   <license>PHP</license>
-  <version>1.0.0RC2</version>
+  <version>1.0.0RC3</version>
   <state>beta</state>
-  <date>2004-12-22</date>
+  <date>2004-01-14</date>
   <notes>
 <![CDATA[
-2nd RC for stable release
-* Bundled PgLOB stream wrapper (sending PgSQL BLOBs through setResource())
-* ETag is now customizable through setEtag()
-* Now using md5(serialize(stat($file))) instead of md5_file($file) for etag generation
-* Fixed Bug #2998 - Typo in error constant name in guessContentType()
+3rd RC for stable release
+* Fixed Bug #2110 - long delay until "Save as..." popup
+* Fixed Bug #3194 - problems with "uncached" downloads in IE6
++ Applied throttling mechanism to the "send data" functionality
 ]]>
   </notes>
   <filelist>
