@@ -64,7 +64,7 @@ define('HTTP_DOWNLOAD_BZ2', 'BZ2');
 /**#@+
 * Error constants
 */
-define('HTTP_DOWNLOAD_E_HEADERS_SENT',          -1);
+define('HTTP_DOWNLOAD_Eheaders_SENT',          -1);
 define('HTTP_DOWNLOAD_E_NO_EXT_ZLIB',           -2);
 define('HTTP_DOWNLOAD_E_NO_EXT_MMAGIC',         -3);
 define('HTTP_DOWNLOAD_E_INVALID_FILE',          -4);
@@ -126,66 +126,66 @@ define('HTTP_DOWNLOAD_E_INVALID_ARCHIVE_TYPE',  -9);
 * @version  $Revision$
 * @access   public
 */
-class HTTP_Download extends HTTP_Header
+class HTTP_Download
 {
     /**
     * Path to file for download
     *
     * @see      HTTP_Download::setFile()
-    * @access   private
+    * @access   protected
     * @var      string
     */
-    var $_file = '';
+    var $file = '';
     
     /**
     * Data for download
     *
     * @see      HTTP_Download::setData()
-    * @access   private
+    * @access   protected
     * @var      string
     */
-    var $_data = null;
+    var $data = null;
     
     /**
     * Resource handle for download
     *
     * @see      HTTP_Download::setResource()
-    * @access   private
+    * @access   protected
     * @var      int
     */
-    var $_handle = null;
+    var $handle = null;
     
     /**
     * Whether to gzip the download
     *
-    * @access   private
+    * @access   protected
     * @var      bool
     */
-    var $_gzip = false;
+    var $gzip = false;
     
     /**
     * Size of download
     *
-    * @access   private
+    * @access   protected
     * @var      int
     */
-    var $_size = 0;
+    var $size = 0;
     
     /**
     * Last modified (GMT)
     *
-    * @access   private
+    * @access   protected
     * @var      string
     */
-    var $_last_modified = '';
+    var $lastModified = '';
     
     /**
     * HTTP headers
     *
-    * @access   private
+    * @access   protected
     * @var      array
     */
-    var $_headers   = array(
+    var $headers   = array(
         'Content-Type'  => 'application/x-octetstream',
         'Cache-Control' => 'public',
         'Accept-Ranges' => 'bytes',
@@ -193,12 +193,20 @@ class HTTP_Download extends HTTP_Header
     );
  
     /**
+    * HTTP_Header
+    * 
+    * @access   protected
+    * @var      object
+    */
+    var $HTTP = null;
+    
+    /**
     * ETag
     * 
-    * @access   private
+    * @access   protected
     * @var      string
     */
-    var $_etag = null;
+    var $etag = '';
        
 	/**
     * Constructor
@@ -231,6 +239,7 @@ class HTTP_Download extends HTTP_Header
     function HTTP_Download($params = array())
     {
         $this->setParams($params);
+        $this->HTTP = &new HTTP_Header;
     }
     
     /**
@@ -286,7 +295,7 @@ class HTTP_Download extends HTTP_Header
         $file = realpath($file);
         if (!is_file($file)) {
             if ($send_404) {
-                $this->sendStatusCode(404);
+                $this->HTTP->sendStatusCode(404);
             }
             return PEAR::raiseError(
                 "File '$file' not found.",
@@ -294,8 +303,8 @@ class HTTP_Download extends HTTP_Header
             );
         }
         $this->setLastModified(filemtime($file));
-        $this->_file = $file;
-        $this->_size = filesize($file);
+        $this->file = $file;
+        $this->size = filesize($file);
         return true;
     }
     
@@ -310,8 +319,8 @@ class HTTP_Download extends HTTP_Header
     */
     function setData($data = null)
     {
-        $this->_data = $data;
-        $this->_size = strlen($data);
+        $this->data = $data;
+        $this->size = strlen($data);
     }
     
     /**
@@ -329,15 +338,15 @@ class HTTP_Download extends HTTP_Header
     function setResource($handle = null)
     {
         if (!isset($handle)) {
-            $this->_handle = null;
-            $this->_size = 0;
+            $this->handle = null;
+            $this->size = 0;
             return true;
         }
         
         if (is_resource($handle)) {
-            $this->_handle  = $handle;
+            $this->handle  = $handle;
             $filestats      = fstat($handle);
-            $this->_size    = $filestats['size'];
+            $this->size    = $filestats['size'];
             return true;
         }
 
@@ -365,7 +374,7 @@ class HTTP_Download extends HTTP_Header
                 HTTP_DOWNLOAD_E_NO_EXT_ZLIB
             );
         }
-        $this->_gzip = (bool) $gzip;
+        $this->gzip = (bool) $gzip;
         return true;
     }
 
@@ -383,8 +392,8 @@ class HTTP_Download extends HTTP_Header
     */
     function setLastModified($last_modified)
     {
-        $this->_last_modified            = HTTP::Date((int) $last_modified);
-        $this->_headers['Last-Modified'] = $this->_last_modified;
+        $this->lastModified             = HTTP::Date((int) $last_modified);
+        $this->headers['Last-Modified'] = (int) $last_modified;
     }
     
     /**
@@ -415,10 +424,10 @@ class HTTP_Download extends HTTP_Header
         $cd = $disposition;
         if (isset($file_name)) {
             $cd .= '; filename="' . $file_name . '"';
-        } elseif ($this->_file) {
-            $cd .= '; filename="' . basename($this->_file) . '"';
+        } elseif ($this->file) {
+            $cd .= '; filename="' . basename($this->file) . '"';
         }
-        $this->_headers['Content-Disposition'] = $cd;
+        $this->headers['Content-Disposition'] = $cd;
     }
     
     /**
@@ -439,7 +448,7 @@ class HTTP_Download extends HTTP_Header
                 HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE
             );
         }
-        $this->_headers['Content-Type'] = $content_type;
+        $this->headers['Content-Type'] = $content_type;
         return true;
     }
     
@@ -471,7 +480,7 @@ class HTTP_Download extends HTTP_Header
                 HTTP_DOWNLOAD_E_NO_EXT_MMAGIC
             );
         }
-        return $this->setContentType(mime_content_type($this->_file));
+        return $this->setContentType(mime_content_type($this->file));
     }
 
     /**
@@ -490,38 +499,39 @@ class HTTP_Download extends HTTP_Header
         if (headers_sent()) {
             return PEAR::raiseError(
                 'Headers already sent.',
-                HTTP_DOWNLOAD_E_HEADERS_SENT
+                HTTP_DOWNLOAD_Eheaders_SENT
             );
         }
 
-        $this->_headers['ETag'] = $this->_generateETag();
+        $this->headers['ETag'] = $this->generateETag();
         
-        if (!isset($this->_headers['Content-Disposition'])) {
+        if (!isset($this->headers['Content-Disposition'])) {
             $this->setContentDisposition();
         }
         
-        if ($this->_isCached()) {
-            $this->sendStatusCode(304);
+        if ($this->isCached()) {
+            $this->HTTP->sendStatusCode(304);
+            $this->sendHeaders();
             return true;
         }
 
-        if ($this->_gzip) {
+        if ($this->gzip) {
             @ob_start('ob_gzhandler');
         } else {
             ob_start();
         }
         
-        if ($this->_isRangeRequest()) {
-            $this->sendStatusCode(206);
-            $chunks = $this->_getChunks();
+        if ($this->isRangeRequest()) {
+            $this->HTTP->sendStatusCode(206);
+            $chunks = $this->getChunks();
         } else {
-            $this->sendStatusCode(200);
-            $chunks = array(array(0, $this->_size));
+            $this->HTTP->sendStatusCode(200);
+            $chunks = array(array(0, $this->size));
         }
 
-        if (true !== $e = $this->_sendChunks($chunks)) {
+        if (true !== $e = $this->sendChunks($chunks)) {
             ob_end_clean();
-            $this->sendStatusCode(416);
+            $this->HTTP->sendStatusCode(416);
             return $e;
         }
         
@@ -621,20 +631,19 @@ class HTTP_Download extends HTTP_Header
     /** 
     * Generate ETag
     * 
-    * @access   private
+    * @access   protected
     * @return   string
-    * @param    bool
     */
-    function _generateETag($weak = false)
+    function generateETag()
     {
-        if ($this->_data) {
-            $md5 = md5($this->_data);
-        } elseif (is_resource($this->_handle)) {
-            $md5 = md5(serialize(fstat($this->_handle)));
+        if ($this->data) {
+            $md5 = md5($this->data);
+        } elseif (is_resource($this->handle)) {
+            $md5 = md5(serialize(fstat($this->handle)));
         } else {
-            $md5 = md5_file($this->_file);
+            $md5 = md5_file($this->file);
         }
-        return $this->_etag = '"' . $md5 . '-' . crc32($md5) . '"';
+        return $this->etag = '"' . $md5 . '-' . crc32($md5) . '"';
     }
     
     /** 
@@ -643,19 +652,19 @@ class HTTP_Download extends HTTP_Header
     * @access   public
     * @return   mixed
     */
-    function _sendChunks($chunks)
+    function sendChunks($chunks)
     {
         if (count($chunks) == 1) {
-            return $this->_sendChunk(array_shift($chunks));
+            return $this->sendChunk(array_shift($chunks));
         } else {
 
             $bound = uniqid('HTTP_DOWNLOAD-', true);
-            $cType = $this->_headers['Content-Type'];
-            $this->_headers['Content-Type'] =  'multipart/byteranges; ';
-            $this->_headers['Content-Type'] .= 'boundary=' . $bound;
+            $cType = $this->headers['Content-Type'];
+            $this->headers['Content-Type'] =  'multipart/byteranges; ';
+            $this->headers['Content-Type'] .= 'boundary=' . $bound;
 
             foreach ($chunks as $chunk){
-                if (true !== $e = $this->_sendChunk($chunk, $cType, $bound)) {
+                if (true !== $e = $this->sendChunk($chunk, $cType, $bound)) {
                     return $e;
                 }
             }
@@ -667,11 +676,11 @@ class HTTP_Download extends HTTP_Header
     /**
     * Send chunk of data
     * 
-    * @access   private
-    * @return   void
+    * @access   protected
+    * @return   mixed
     * @param    array   $chunk
     */
-    function _sendChunk($chunk, $cType = null, $bound = null)
+    function sendChunk($chunk, $cType = null, $bound = null)
     {
         list($offset, $lastbyte) = $chunk;
         $length = ($lastbyte - $offset) + 1;
@@ -683,25 +692,24 @@ class HTTP_Download extends HTTP_Header
             );
         }
         
-        $range  = $offset . '-' . $lastbyte . '/' . $this->_size;
+        $range  = $offset . '-' . $lastbyte . '/' . $this->size;
         
         if (isset($cType, $bound)) {
             echo    "\n--$bound\n",
                     "Content-Type: $cType\n",
                     "Content-Range: $range\n\n";
-        } elseif ($this->_isRangeRequest()) {
-            $this->_headers['Content-Range'] = $range;
+        } elseif ($this->isRangeRequest()) {
+            $this->headers['Content-Range'] = $range;
         }
 
-        if ($this->_data) {
+        if ($this->data) {
             echo substr($this->data, $offset, $length);
         } else {
-            $actual = 0;
-            if (!$this->_handle) {
-                $this->_handle = fopen($this->_file, 'rb');
+            if (!$this->handle) {
+                $this->handle = fopen($this->file, 'rb');
             }
-            fseek($this->_handle, $offset);
-            echo fread($this->_handle, $length);
+            fseek($this->handle, $offset);
+            echo fread($this->handle, $length);
         }
         return true;
     }
@@ -709,17 +717,20 @@ class HTTP_Download extends HTTP_Header
     /** 
     * Get chunks to send
     * 
-    * @access   public
-    * @return   mixed
+    * @access   protected
+    * @return   array
     */
-    function _getChunks()
+    function getChunks()
     {
-        foreach (explode(',', $this->_getRangeRequest()) as $chunk){
+        $parts = array();
+        foreach (explode(',', $this->getRanges()) as $chunk){
             list($o, $e) = explode('-', $chunk);
-            $e = (!$e || $e >= $this->_size ? $this->_size - 1 : $e);
+            if ($e >= $this->size || (empty($e) && $e !== 0 && $e !== '0')) {
+                $e = $this->size - 1;
+            }
             if (empty($o) && $o !== 0 && $o !== '0') {
-                $o = $this->_size - $e;
-                $e = $this->_size - 1;
+                $o = $this->size - $e;
+                $e = $this->size - 1;
             }
             $parts[] = array($o, $e);
         }
@@ -729,58 +740,96 @@ class HTTP_Download extends HTTP_Header
     /** 
     * Check if range is requested
     * 
-    * @access   private
+    * @access   protected
     * @return   mixed
     * @param    bool
     */
-    function _isRangeRequest()
+    function isRangeRequest()
     {
         if (!isset($_SERVER['HTTP_RANGE'])) {
             return false;
         }
-        if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE']) && 
-            $_SERVER['HTTP_IF_UNMODIFIED_SINCE'] !== $this->_last_modified) {
+        return $this->isValidRange();
+    }
+    
+    /** 
+    * Get range request
+    * 
+    * @access   protected
+    * @return   array
+    */
+    function getRanges()
+    {
+        return preg_match('/^bytes=((\d*-\d*,?)+)$/', 
+            @$_SERVER['HTTP_RANGE'], $matches) ? $matches[1] : null;
+    }
+    
+    /** 
+    * Check if entity is cached
+    * 
+    * @access   protected
+    * @return   bool
+    */
+    function isCached()
+    {
+        return 
+            isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&
+            $this->lastModified === $_SERVER['HTTP_IF_MODIFIED_SINCE'];
+    }
+    
+    /** 
+    * Check if entity hasn't changed
+    * 
+    * @access   protected
+    * @return   bool
+    */
+    function isValidRange()
+    {
+        if (isset($_SERVER['HTTP_IF_NONE_MATCH']) &&
+            $this->compareAsterisk('HTTP_IF_NONE_MATCH', $this->etag)) {
             return false;
         }
-        if (isset($_SERVER['HTTP_IF_RANGE']) &&
-            $_SERVER['HTTP_IF_RANGE'] !== $this->_last_modified) {
+        if (isset($_SERVER['HTTP_IF_MATCH']) &&
+            !$this->compareAsterisk('HTTP_IF_MATCH', $this->etag)) {
+            return false;
+        }
+        if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE']) && 
+            $_SERVER['HTTP_IF_UNMODIFIED_SINCE'] !== $this->lastModified) {
             return false;
         }
         return true;
     }
     
     /** 
-    * Get range request
+    * Compare against an asterisk or check for equality
     * 
-    * @access   public
-    * @return   array
+    * @access   protected
+    * @return   bool
+    * @param    string  key for the $_SERVER array
+    * @param    string  string to compare
     */
-    function _getRangeRequest()
+    function compareAsterisk($svar, $compare)
     {
-        $matched = preg_match('/^bytes=((\d*-\d*,?)+)$/', 
-            $_SERVER['HTTP_RANGE'], $matches);
-        if ($matched) {
-            return $matches[1];
+        foreach (array_map('trim', explode(',', $_SERVER[$svar])) as $request) {
+            if ($request === '*' || $request === $compare) {
+                return true;
+            }
         }
         return false;
     }
     
-    /** 
-    * Check if download should be cached
-    * 
-    * @access   private
-    * @return   bool
+    /**
+    * Send HTTP headers
+    *
+    * @access   protected
+    * @return   void
     */
-    function _isCached()
+    function sendHeaders()
     {
-        if (isset($_SERVER['HTTP_ETAG']) && $_SERVER['HTTP_ETAG'] = $this->_etag) {
-            return true;
+        foreach ($this->headers as $header => $value) {
+            $this->HTTP->setHeader($header, $value);
         }
-        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&
-            $_SERVER['HTTP_IF_MODIFIED_SINCE'] == $this->_last_modified) {
-            return true;
-        }
-        return false;
+        $this->HTTP->sendHeaders();
     }
 }
 ?>
