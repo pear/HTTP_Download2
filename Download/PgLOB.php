@@ -114,7 +114,8 @@ class HTTP_Download_PgLOB
         list(, $loid) = $matches;
         
         pg_query($conn, 'BEGIN');
-        return $this->handle = &pg_lo_open($conn, $loid, $mode);;
+        $this->handle = pg_lo_open($conn, $loid, $mode);
+        return true;
     }
     
     function stream_read($length)
