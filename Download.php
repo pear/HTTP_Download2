@@ -469,8 +469,8 @@ class HTTP_Download extends HTTP_Header
                 }
             } else {
                 $rb = 65536;
-                $fh = $this->_handle ? 
-                    &$this->_hanlde : fopen($this->_file, 'rb');
+                $fh =& $this->_handle ? 
+                    $this->_hanlde : fopen($this->_file, 'rb');
                 
                 fseek($fh, $begin);
                 while(0 < ($length -= $rb)) {
