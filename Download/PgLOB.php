@@ -144,7 +144,7 @@ class HTTP_Download_PgLOB
         return true;
     }
     
-    function streas_stat()
+    function stream_stat()
     {
         return array('loid' => $this->ID);
     }
