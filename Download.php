@@ -589,8 +589,10 @@ class HTTP_Download
      * 
      * @access  public
      * @return  mixed   Returns true on success or PEAR_Error on failure.
+     * @param   bool    $autoSetContentDisposition Whether to set the
+     *                  Content-Disposition header if it isn't already.
      */
-    function send()
+    function send($autoSetContentDisposition = true)
     {
         if (headers_sent()) {
             return PEAR::raiseError(
@@ -601,7 +603,8 @@ class HTTP_Download
 
         set_time_limit(0);
         
-        if (!isset($this->headers['Content-Disposition'])) {
+        if ($autoSetContentDisposition && 
+            !isset($this->headers['Content-Disposition'])) {
             $this->setContentDisposition();
         }
         
