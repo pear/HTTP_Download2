@@ -166,7 +166,7 @@ class HTTP_Download
     var $headers   = array(
         'Content-Type'  => 'application/x-octetstream',
         'Pragma'        => 'cache',
-        'Cache-Control' => 'public',
+        'Cache-Control' => 'public, must-revalidate, max-age=0',
         'Accept-Ranges' => 'bytes',
         'Connection'    => 'close',
         'X-Sent-By'     => 'PEAR::HTTP::Download'
@@ -195,10 +195,18 @@ class HTTP_Download
      * @var     int
      */
     var $bufferSize = 2097152;
+    
+    /**
+     * Throttle Delay
+     * 
+     * @access  protected
+     * @var     int
+     */
+    var $throttleDelay = 0;
     // }}}
     
     // {{{ constructor
-	/**
+    /**
      * Constructor
      *
      * Set supplied parameters.
@@ -218,6 +226,7 @@ class HTTP_Download
      *                  o 'contenttype'         => content type of download
      *                  o 'contentdisposition'  => content disposition
      *                  o 'buffersize'          => amount of bytes to buffer
+     *                  o 'throttledelay'       => amount of secs to sleep
      * 
      * <br />
      * 'Content-Disposition' is not HTTP compliant, but most browsers 
@@ -430,6 +439,35 @@ class HTTP_Download
     }
     
     /**
+     * Set Throttle Delay
+     * 
+     * Set the amount of seconds to sleep after each chunck that has been
+     * sent.  One can implement some sort of throttle through adjusting the
+     * buffer size and the throttle delay.  With the following settings
+     * HTTP_Download will sleep a second after each 25 K of data sent.
+     * 
+     * <code>
+     *  Array(
+     *      'throttledelay' => 1,
+     *      'buffersize'    => 1024 * 25,
+     *  )
+     * </code>
+     * 
+     * Just be aware that if gzipp'ing is enabled, decreasing the chunk size 
+     * too much leads to proportionally increased network traffic due to added
+     * gzip header and bottom bytes around each chunk.
+     * 
+     * @access  public
+     * @return  void
+     * @param   int     $sec    Amount of seconds to sleep after each 
+     *                          chunk that has been sent.
+     */
+    function setThrottleDelay($sec = 0)
+    {
+        $this->throttleDelay = abs((int) $sec);
+    }
+    
+    /**
      * Set "Last-Modified"
      *
      * This is usually determined by filemtime() in HTTP_Download::setFile()
@@ -561,6 +599,8 @@ class HTTP_Download
             );
         }
 
+        set_time_limit(0);
+        
         if (!isset($this->headers['Content-Disposition'])) {
             $this->setContentDisposition();
         }
@@ -814,10 +854,12 @@ class HTTP_Download
                 $this->handle = fopen($this->file, 'rb');
             }
             fseek($this->handle, $offset);
-            // only read 2M at once
             while (($length -= $this->bufferSize) > 0) {
                 echo fread($this->handle, $this->bufferSize);
                 ob_flush();
+                if ($this->throttleDelay) {
+                    sleep($this->throttleDelay);
+                }
             }
             if ($length) {
                 echo fread($this->handle, $this->bufferSize + $length);
@@ -943,6 +985,7 @@ class HTTP_Download
             $this->HTTP->setHeader($header, $value);
         }
         $this->HTTP->sendHeaders();
+        ob_flush();
     }
     // }}}
 }
