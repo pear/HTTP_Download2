@@ -469,15 +469,15 @@ class HTTP_Download extends HTTP_Header
                 }
             } else {
                 $rb = 65536;
-                $fh =& $this->_handle ? 
-                    $this->_hanlde : fopen($this->_file, 'rb');
-                
-                fseek($fh, $begin);
-                while(0 < ($length -= $rb)) {
-                    echo(fread($fh, $rb));
+                if (!$this->_handle) {
+                    $this->_handle = fopen($this->_file, 'rb');
                 }
-                echo(fread($fh, $length+$rb));
-                fclose($fh);
+                fseek($this->_handle, $begin);
+                while(0 < ($length -= $rb)) {
+                    echo(fread($this->_handle, $rb));
+                }
+                echo(fread($this->_handle, $length+$rb));
+                fclose($this->_handle);
             }
         }
         return true;
