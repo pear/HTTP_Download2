@@ -34,8 +34,7 @@ stream_register_wrapper('pglob', 'HTTP_Download_PgLOB');
  * require_once 'HTTP/Download/PgLOB.php';
  * $db = &DB::connect('pgsql://user:pass@host/db');
  * // or $db = pg_connect(...);
- * HTTP_Download_PgLOB::setConnection($db);
- * $lo = HTTP_Download_PgLOB::open(12345);
+ * $lo = HTTP_Download_PgLOB::open($db, 12345);
  * $dl = &new HTTP_Download;
  * $dl->setResource($lo);
  * $dl->send()
