@@ -625,6 +625,9 @@ class HTTP_Download extends HTTP_Header
 
                 // Not Modified
                 $this->sendStatusCode(304);
+                $this->sendHeaders(
+                    array('Cache-Control', 'Accept-Ranges', 'Connection')
+                );
                 return false;
             }
         }
