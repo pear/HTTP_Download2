@@ -43,6 +43,19 @@ define('HTTP_DOWNLOAD_ATTACHMENT', 'attachment');
 */
 define('HTTP_DOWNLOAD_INLINE', 'inline');
 
+/**#@+
+* Error constants
+*/
+define('HTTP_DOWNLOAD_E_HEADERS_SENT',          -1);
+define('HTTP_DOWNLOAD_E_NO_EXT_ZLIB',           -2);
+define('HTTP_DOWNLOAD_E_NO_EXT_MMAGIC',         -3);
+define('HTTP_DOWNLOAD_E_INVALID_FILE',          -4);
+define('HTTP_DOWNLOAD_E_INVALID_PARAM',         -5);
+define('HTTP_DOWNLOAD_E_INVALID_RESOURCE',      -6);
+define('HTTP_DOWNLOAD_E_INVALID_REQUEST',       -7);
+define('HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE',  -8);
+/**#@+*/
+
 /** 
 * Send HTTP Downloads.
 *
@@ -220,7 +233,10 @@ class HTTP_Download extends HTTP_Header
     {
         foreach($params as $param => $value){
             if (!method_exists($this, 'set' . $param)) {
-                return PEAR::raiseError("Method 'set$param' doesn't exist.");
+                return PEAR::raiseError(
+                    "Method 'set$param' doesn't exist.",
+                    HTTP_DOWNLOAD_E_INVALID_PARAM
+                );
             }
             if (strToLower($param) == 'contentdisposition') {
                 if (is_array($value)) {
@@ -258,7 +274,10 @@ class HTTP_Download extends HTTP_Header
             if ($send_404) {
                 $this->sendStatusCode(404);
             }
-            return PEAR::raiseError("File '$file' not found.");
+            return PEAR::raiseError(
+                "File '$file' not found.",
+                HTTP_DOWNLOAD_E_INVALID_FILE
+            );
         }
         $this->setLastModified(filemtime($file));
         $this->_file = $file;
@@ -299,7 +318,8 @@ class HTTP_Download extends HTTP_Header
         if (!is_resource($handle)) {
             if (!is_null($handle)) {
                 return PEAR::raiseError(
-                    "Handle '$handle' is no valid resource."
+                    "Handle '$handle' is no valid resource.",
+                    HTTP_DOWNLOAD_E_INVALID_RESOURCE
                 );
             } else {
                 $this->_handle  = null;
@@ -326,7 +346,10 @@ class HTTP_Download extends HTTP_Header
     function setGzip($gzip = false)
     {
         if ($gzip && !extension_loaded('zlib') && !PEAR::loadExtension('zlib')){
-            return PEAR::raiseError('Compression (ext/zlib) not available.');
+            return PEAR::raiseError(
+                'Compression (ext/zlib) not available.',
+                HTTP_DOWNLOAD_E_NO_EXT_ZLIB
+            );
         }
         $this->_gzip = (bool) $gzip;
         return true;
@@ -398,7 +421,8 @@ class HTTP_Download extends HTTP_Header
     {
         if (!preg_match('/^[a-z]+\w*\/[a-z]+[\w.;= -]*$/', $content_type)) {
             return PEAR::raiseError(
-                "Invalid content type '$content_type' supplied."
+                "Invalid content type '$content_type' supplied.",
+                HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE
             );
         }
         $this->_headers['Content-Type'] = $content_type;
@@ -415,18 +439,22 @@ class HTTP_Download extends HTTP_Header
     * 
     * @throws   PEAR_Error
     * @access   public
-    * @return   mixed   true on success or PEAR_Error
+    * @return   mixed   Returns true on success, false if cached or 
+    *                   <classname>PEAR_Error</clasname> on failure.
     */
     function send()
     {
         if (headers_sent()) {
-            return PEAR::raiseError('Headers already sent.');
+            return PEAR::raiseError(
+                'Headers already sent.',
+                HTTP_DOWNLOAD_E_HEADERS_SENT
+            );
         }
         /**
         * Check for partial downloads
         */
         $range = $this->_processRequest();
-        if (PEAR::isError($range)) {
+        if (!$range || PEAR::isError($range)) {
             return $range;
         }
         list($begin, $length) = $range;
@@ -527,9 +555,10 @@ class HTTP_Download extends HTTP_Header
                     // First check if there is anything useable in Range header
                     if (!$bytes[1] && !$bytes[2]) {
                         // Range is not valid
-                        $this->sendStatusCode(HTTP_HEADER_STATUS_416);
+                        $this->sendStatusCode(416);
                         return PEAR::raiseError(
-                            'HTTP Error: ' . HTTP_HEADER_STATUS_416
+                            'HTTP Error: ' . HTTP_HEADER_STATUS_416,
+                            HTTP_DOWNLOAD_E_INVALID_REQUEST
                         );
                     }
                     
@@ -560,9 +589,10 @@ class HTTP_Download extends HTTP_Header
                                 $length  > $this->_size ) 
                     {
                         // Range is not valid
-                        $this->sendStatusCode(HTTP_HEADER_STATUS_416);
+                        $this->sendStatusCode(416);
                         return PEAR::raiseError(
-                            'HTTP Error: ' . HTTP_HEADER_STATUS_416
+                            'HTTP Error: ' . HTTP_HEADER_STATUS_416,
+                            HTTP_DOWNLOAD_E_INVALID_REQUEST
                         );
 
                     // Else all's gone fine
@@ -578,9 +608,10 @@ class HTTP_Download extends HTTP_Header
                 } else {
 
                     // Range is not valid
-                    $this->sendStatusCode(HTTP_HEADER_STATUS_416);
+                    $this->sendStatusCode(416);
                     return PEAR::raiseError(
-                        'HTTP Error: ' . HTTP_HEADER_STATUS_416
+                        'HTTP Error: ' . HTTP_HEADER_STATUS_416,
+                        HTTP_DOWNLOAD_E_INVALID_REQUEST
                     );
                 }
             }
@@ -593,10 +624,8 @@ class HTTP_Download extends HTTP_Header
             if ($_SERVER['HTTP_IF_MODIFIED_SINCE'] == $this->_last_modified ) {
 
                 // Not Modified
-                $this->sendStatusCode(HTTP_HEADER_STATUS_304);
-                return PEAR::raiseError(
-                    'HTTP Cached: ' . HTTP_HEADER_STATUS_304
-                );
+                $this->sendStatusCode(304);
+                return false;
             }
         }
         
@@ -605,9 +634,9 @@ class HTTP_Download extends HTTP_Header
         * Send "HTTP/1.x 200 Ok" if we send the whole thingy
         */
         if ($send_range) {
-            $this->sendStatusCode(HTTP_HEADER_STATUS_206);
+            $this->sendStatusCode(206);
         } else {
-            $this->sendStatusCode(HTTP_HEADER_STATUS_200);
+            $this->sendStatusCode(200);
         }
         
         $this->_headers['Content-Length'] = $length;
@@ -631,10 +660,16 @@ class HTTP_Download extends HTTP_Header
     function guessContentType()
     {
         if (!function_exists('mime_content_type')) {
-            return PEAR::raiseError('This feature requires ext/magic.mime!');
+            return PEAR::raiseError(
+                'This feature requires ext/magic.mime!',
+                HTTP_DOWNLOAD_E_NO_EXT_MMAGIC
+            );
         }
         if (!is_file(ini_get('mime_magic.magicfile'))) {
-            return PEAR::raiseError('mime_magic is loaded but not configured!');
+            return PEAR::raiseError(
+                'mime_magic is loaded but not configured!',
+                HTTP_DOWNLOAD_E_NO_EXT_MMAGIC
+            );
         }
         return $this->setContentType(mime_content_type($this->_file));
     }
