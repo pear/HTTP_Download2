@@ -557,6 +557,9 @@ class HTTP_Download
         } else {
             $this->HTTP->sendStatusCode(200);
             $chunks = array(array(0, $this->size));
+            if (!$this->gzip) {
+                $this->headers['Content-Length'] = $this->size;
+            }
         }
 
         if (true !== $e = $this->sendChunks($chunks)) {
