@@ -58,7 +58,7 @@ define('HTTP_DOWNLOAD_BZ2', 'BZ2');
 /**
 * Send as zip archive (not available yet)
 */
-define('HTTP_DOWNLOAD_ZIP', 'ZIP');
+#define('HTTP_DOWNLOAD_ZIP', 'ZIP');
 /**#@-**/
 
 /**#@+
@@ -191,7 +191,15 @@ class HTTP_Download extends HTTP_Header
         'Accept-Ranges' => 'bytes',
         'Connection'    => 'close'
     );
-    
+ 
+    /**
+    * ETag
+    * 
+    * @access   private
+    * @var      string
+    */
+    var $_etag = null;
+       
 	/**
     * Constructor
     *
@@ -320,23 +328,23 @@ class HTTP_Download extends HTTP_Header
     */
     function setResource($handle = null)
     {
-        // Check if $handle is a valid resource
-        if (!is_resource($handle)) {
-            if (!is_null($handle)) {
-                return PEAR::raiseError(
-                    "Handle '$handle' is no valid resource.",
-                    HTTP_DOWNLOAD_E_INVALID_RESOURCE
-                );
-            } else {
-                $this->_handle  = null;
-                $this->_size    = 0;
-            }
-        } else {
-            $this->_handle  = $handle;
-            $stats          = fstat($handle);
-            $this->_size    = $stats['size'];
+        if (!isset($handle)) {
+            $this->_handle = null;
+            $this->_size = 0;
+            return true;
         }
-        return true;
+        
+        if (is_resource($handle)) {
+            $this->_handle  = $handle;
+            $filestats      = fstat($handle);
+            $this->_size    = $filestats['size'];
+            return true;
+        }
+
+        return PEAR::raiseError(
+            "Handle '$handle' is no valid resource.",
+            HTTP_DOWNLOAD_E_INVALID_RESOURCE
+        );
     }
     
     /**
@@ -351,9 +359,9 @@ class HTTP_Download extends HTTP_Header
     */
     function setGzip($gzip = false)
     {
-        if ($gzip && !extension_loaded('zlib') && !PEAR::loadExtension('zlib')){
+        if ($gzip && !PEAR::loadExtension('zlib')){
             return PEAR::raiseError(
-                'Compression (ext/zlib) not available.',
+                'GZIP Compression (ext/zlib) not available.',
                 HTTP_DOWNLOAD_E_NO_EXT_ZLIB
             );
         }
@@ -405,7 +413,7 @@ class HTTP_Download extends HTTP_Header
     )
     {
         $cd = $disposition;
-        if (!is_null($file_name)) {
+        if (isset($file_name)) {
             $cd .= '; filename="' . $file_name . '"';
         } elseif ($this->_file) {
             $cd .= '; filename="' . basename($this->_file) . '"';
@@ -433,241 +441,6 @@ class HTTP_Download extends HTTP_Header
         }
         $this->_headers['Content-Type'] = $content_type;
         return true;
-    }
-    
-    /**
-    * Send file
-    *
-    * Returns PEAR_Error if:
-    *   o HTTP headers were already sent
-    *   o HTTP Range was invalid
-    *   o Download was 'not modified since'
-    * 
-    * @throws   PEAR_Error
-    * @access   public
-    * @return   mixed   Returns true on success, false if cached or 
-    *                   <classname>PEAR_Error</clasname> on failure.
-    */
-    function send()
-    {
-        if (headers_sent()) {
-            return PEAR::raiseError(
-                'Headers already sent.',
-                HTTP_DOWNLOAD_E_HEADERS_SENT
-            );
-        }
-        /**
-        * Check for partial downloads
-        */
-        $range = $this->_processRequest();
-        if (!$range || PEAR::isError($range)) {
-            return $range;
-        }
-        list($begin, $length) = $range;
-        $all = ($begin == 0 && $length == $this->_size);
-        /**
-        * Check if Content-Disposition header is already set
-        */
-        if (!isset($this->_headers['Content-Disposition'])) {
-            $this->setContentDisposition();
-        }
-        
-        /**
-        * HTTP Compression
-        */
-        if (!$this->_gzip || !@ob_start('ob_gzhandler')) {
-            $this->_headers['Content-Length'] = $length;
-        }
-        
-        /**
-        * Send HTTP headers
-        */
-        $this->sendHeaders();
-
-        /**
-        * Send requested data (part)
-        */
-        set_time_limit(0);
-        if ($this->_data) {
-            echo $all ? $this->_data : substr($this->_data, $begin, $length);
-        } else {
-            if ($all) {
-                if ($this->_handle) {
-                    rewind($this->_handle);
-                    fpassthru($this->_handle);
-                } else {
-                    readfile($this->_file);
-                }
-            } else {
-                $rb = 65536;
-                if (!$this->_handle) {
-                    $this->_handle = fopen($this->_file, 'rb');
-                }
-                fseek($this->_handle, $begin);
-                while(0 < ($length -= $rb)) {
-                    echo(fread($this->_handle, $rb));
-                }
-                echo(fread($this->_handle, $length+$rb));
-                fclose($this->_handle);
-            }
-        }
-        return true;
-    }
-    
-    /**
-    * Process HTTP request
-    * 
-    * Check for partial downloads, sane Range headers and HTTP caching.
-    *
-    * Returns PEAR_Error if:
-    *   o download is cached
-    *   o HTTP Request was invalid
-    * 
-    * @access   private
-    * @return   mixed   array((int) begin, (int) length) in bytes or PEAR_Error
-    */
-    function _processRequest()
-    {
-        $begin      = 0;
-        $length     = $this->_size;
-        $send_range = false;
-
-        /**
-        * Handle Ranges (partial downloads)
-        */
-        if (isset($_SERVER['HTTP_RANGE'])) {
-            $send_range = true;
-
-            // Check for conditional GET
-            if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE'])) {
-                if ($_SERVER['HTTP_IF_UNMODIFIED_SINCE'] != 
-                    $this->_last_modified ) 
-                {
-                    $send_range = false;
-                }
-            } elseif (isset($_SERVER['HTTP_IF_RANGE'])) {
-
-                // If it doesn't match send the whole thingy
-                if ( $_SERVER['HTTP_IF_RANGE'] != $this->_last_modified ) {
-                    $send_range = false;
-                } 
-            }
-
-            /**
-            * We don't provide complete http compliance and
-            * handle just basic range request (not combined)
-            */
-            if ($send_range) {
-                if (preg_match( '/^bytes=(\d*).*?(\d*)$/i', 
-                                $_SERVER['HTTP_RANGE'], 
-                                $bytes )) 
-                {
-
-                    // First check if there is anything useable in Range header
-                    if (    !$bytes[1] && !$bytes[2] && 
-                            $bytes[1] !== '0' && $bytes[2] !== '0') {
-                        // Range is not valid
-                        $this->sendStatusCode(416);
-                        return PEAR::raiseError(
-                            'HTTP Error: ' . HTTP_HEADER_STATUS_416,
-                            HTTP_DOWNLOAD_E_INVALID_REQUEST
-                        );
-                    }
-                    
-                    // Calculate the desired Range
-                    if (!$bytes[1] && $bytes[1] !== '0') {
-                        // OK - Range: bytes=-5
-                        $length = $bytes[2];
-                        $end    = $this->_size - 1;
-                        $begin  = $this->_size - $length;
-                    } elseif (!$bytes[2] && $bytes[2] !== '0') {
-                        // OK - Range: bytes=5-
-                        $begin  = $bytes[1];
-                        $end    = $this->_size - 1;
-                        $length = $this->_size - $begin;
-                    } elseif ($bytes[2] < $bytes[1]) {
-                        $begin  = 0;
-                        $end    = $this->_size - 1;
-                        $length = $this->_size;
-                    } else {
-                        // OK - Range: bytes=5-9
-                        $begin  = $bytes[1];
-                        $end    = $bytes[2];
-                        $length = ($end - $begin) + 1;
-                    }
-
-                    // Check if we're out of range
-                    if ($end > $this->_size || ($begin + $length) > $this->_size) {
-                        $end    = $this->_size - 1;
-                        $length = $this->_size - $begin;
-                    }
-                    
-                    // Check if range and file size equal
-                    // or second byte offset was less than
-                    // the first, so we just ignore the range 
-                    // header and send the hole thingy
-                    if ($length >= $this->_size || $length <= 0) {
-                        $begin      = 0;
-                        $end        = $length;
-                        $send_range = false;
-
-                    // Check if we're totally out of bounds
-                    } elseif ($begin > $this->_size) {
-                        // Range is not valid
-                        $this->sendStatusCode(416);
-                        return PEAR::raiseError(
-                            'HTTP Error: ' . HTTP_HEADER_STATUS_416,
-                            HTTP_DOWNLOAD_E_INVALID_REQUEST
-                        );
-
-                    // Else all's gone fine
-                    } else {
-
-                        // Set content range header
-                        $this->_headers['Content-Range'] =
-                            'bytes: ' . $begin . '-' . $end . '/' . 
-                            $this->_size;
-                    }
-
-                // If Range header didn't even contain "bytes="
-                } else {
-
-                    // Range is not valid
-                    $this->sendStatusCode(416);
-                    return PEAR::raiseError(
-                        'HTTP Error: ' . HTTP_HEADER_STATUS_416,
-                        HTTP_DOWNLOAD_E_INVALID_REQUEST
-                    );
-                }
-            }
-        }
-
-        /**
-        * Don't send data if cached - "HTTP/1.x 304 Not Modified"
-        */
-        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
-            if ($_SERVER['HTTP_IF_MODIFIED_SINCE'] == $this->_last_modified ) {
-
-                // Not Modified
-                $this->sendStatusCode(304);
-                $this->sendHeaders(
-                    array('Cache-Control', 'Accept-Ranges', 'Connection')
-                );
-                return false;
-            }
-        }
-        
-        /**
-        * Send "HTTP/1.x 206 Partial Content" if we send a part
-        * Send "HTTP/1.x 200 Ok" if we send the whole thingy
-        */
-        if ($send_range) {
-            $this->sendStatusCode(206);
-        } else {
-            $this->sendStatusCode(200);
-        }
-        
-        return array($begin, $length);
     }
     
     /**
@@ -700,7 +473,63 @@ class HTTP_Download extends HTTP_Header
         }
         return $this->setContentType(mime_content_type($this->_file));
     }
-    
+
+    /**
+    * Send
+    *
+    * Returns PEAR_Error if:
+    *   o HTTP headers were already sent
+    *   o HTTP Range was invalid
+    * 
+    * @access   public
+    * @return   mixed   Returns true on success, false if cached or 
+    *                   <classname>PEAR_Error</clasname> on failure.
+    */
+    function send()
+    {
+        if (headers_sent()) {
+            return PEAR::raiseError(
+                'Headers already sent.',
+                HTTP_DOWNLOAD_E_HEADERS_SENT
+            );
+        }
+
+        $this->_headers['ETag'] = $this->_generateETag();
+        
+        if (!isset($this->_headers['Content-Disposition'])) {
+            $this->setContentDisposition();
+        }
+        
+        if ($this->_isCached()) {
+            $this->sendStatusCode(304);
+            return true;
+        }
+
+        if ($this->_gzip) {
+            @ob_start('ob_gzhandler');
+        } else {
+            ob_start();
+        }
+        
+        if ($this->_isRangeRequest()) {
+            $this->sendStatusCode(206);
+            $chunks = $this->_getChunks();
+        } else {
+            $this->sendStatusCode(200);
+            $chunks = array(array(0, $this->_size));
+        }
+
+        if (true !== $e = $this->_sendChunks($chunks)) {
+            ob_end_clean();
+            $this->sendStatusCode(416);
+            return $e;
+        }
+        
+        $this->sendHeaders();
+        
+        return true;
+    }    
+
     /**
     * Static send
     *
@@ -787,6 +616,171 @@ class HTTP_Download extends HTTP_Header
         $dl->setContentType('application/' . $content_type);
         $dl->setContentDisposition(HTTP_DOWNLOAD_ATTACHMENT, $name);
         return $dl->send();
+    }
+
+    /** 
+    * Generate ETag
+    * 
+    * @access   private
+    * @return   string
+    * @param    bool
+    */
+    function _generateETag($weak = false)
+    {
+        if ($this->_data) {
+            $md5 = md5($this->_data);
+        } elseif (is_resource($this->_handle)) {
+            $md5 = md5(serialize(fstat($this->_handle)));
+        } else {
+            $md5 = md5_file($this->_file);
+        }
+        return $this->_etag = '"' . $md5 . '-' . crc32($md5) . '"';
+    }
+    
+    /** 
+    * Send multiple chunks
+    * 
+    * @access   public
+    * @return   mixed
+    */
+    function _sendChunks($chunks)
+    {
+        if (count($chunks) == 1) {
+            return $this->_sendChunk(array_shift($chunks));
+        } else {
+
+            $bound = uniqid('HTTP_DOWNLOAD-', true);
+            $cType = $this->_headers['Content-Type'];
+            $this->_headers['Content-Type'] =  'multipart/byteranges; ';
+            $this->_headers['Content-Type'] .= 'boundary=' . $bound;
+
+            foreach ($chunks as $chunk){
+                if (true !== $e = $this->_sendChunk($chunk, $cType, $bound)) {
+                    return $e;
+                }
+            }
+            echo "\n--$bound";
+        }
+        return true;
+    }
+    
+    /**
+    * Send chunk of data
+    * 
+    * @access   private
+    * @return   void
+    * @param    array   $chunk
+    */
+    function _sendChunk($chunk, $cType = null, $bound = null)
+    {
+        list($offset, $lastbyte) = $chunk;
+        $length = ($lastbyte - $offset) + 1;
+        
+        if ($length < 0) {
+            return PEAR::raiseError(
+                "Error processing range request: $offset-$lastbyte/$length",
+                HTTP_DOWNLOAD_E_INVALID_REQUEST
+            );
+        }
+        
+        $range  = $offset . '-' . $lastbyte . '/' . $this->_size;
+        
+        if (isset($cType, $bound)) {
+            echo    "\n--$bound\n",
+                    "Content-Type: $cType\n",
+                    "Content-Range: $range\n\n";
+        } elseif ($this->_isRangeRequest()) {
+            $this->_headers['Content-Range'] = $range;
+        }
+
+        if ($this->_data) {
+            echo substr($this->data, $offset, $length);
+        } else {
+            $actual = 0;
+            if (!$this->_handle) {
+                $this->_handle = fopen($this->_file, 'rb');
+            }
+            fseek($this->_handle, $offset);
+            echo fread($this->_handle, $length);
+        }
+        return true;
+    }
+    
+    /** 
+    * Get chunks to send
+    * 
+    * @access   public
+    * @return   mixed
+    */
+    function _getChunks()
+    {
+        foreach (explode(',', $this->_getRangeRequest()) as $chunk){
+            list($o, $e) = explode('-', $chunk);
+            $e = (!$e || $e >= $this->_size ? $this->_size - 1 : $e);
+            if (empty($o) && $o !== 0 && $o !== '0') {
+                $o = $this->_size - $e;
+                $e = $this->_size - 1;
+            }
+            $parts[] = array($o, $e);
+        }
+        return $parts;
+    }
+    
+    /** 
+    * Check if range is requested
+    * 
+    * @access   private
+    * @return   mixed
+    * @param    bool
+    */
+    function _isRangeRequest()
+    {
+        if (!isset($_SERVER['HTTP_RANGE'])) {
+            return false;
+        }
+        if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE']) && 
+            $_SERVER['HTTP_IF_UNMODIFIED_SINCE'] !== $this->_last_modified) {
+            return false;
+        }
+        if (isset($_SERVER['HTTP_IF_RANGE']) &&
+            $_SERVER['HTTP_IF_RANGE'] !== $this->_last_modified) {
+            return false;
+        }
+        return true;
+    }
+    
+    /** 
+    * Get range request
+    * 
+    * @access   public
+    * @return   array
+    */
+    function _getRangeRequest()
+    {
+        $matched = preg_match('/^bytes=((\d*-\d*,?)+)$/', 
+            $_SERVER['HTTP_RANGE'], $matches);
+        if ($matched) {
+            return $matches[1];
+        }
+        return false;
+    }
+    
+    /** 
+    * Check if download should be cached
+    * 
+    * @access   private
+    * @return   bool
+    */
+    function _isCached()
+    {
+        if (isset($_SERVER['HTTP_ETAG']) && $_SERVER['HTTP_ETAG'] = $this->_etag) {
+            return true;
+        }
+        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&
+            $_SERVER['HTTP_IF_MODIFIED_SINCE'] == $this->_last_modified) {
+            return true;
+        }
+        return false;
     }
 }
 ?>
