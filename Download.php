@@ -60,9 +60,9 @@ define('HTTP_DOWNLOAD_TGZ', 'TGZ');
  */
 define('HTTP_DOWNLOAD_BZ2', 'BZ2');
 /**
- * Send as zip archive (not available yet)
+ * Send as zip archive
  */
-#define('HTTP_DOWNLOAD_ZIP', 'ZIP');
+define('HTTP_DOWNLOAD_ZIP', 'ZIP');
 /**#@-**/
 
 /**#@+
@@ -633,7 +633,7 @@ class HTTP_Download
         
         $tmp = System::mktemp();
         
-        switch (strToUpper($type))
+        switch ($type = strToUpper($type))
         {
             case HTTP_DOWNLOAD_TAR:
                 include_once 'Archive/Tar.php';
@@ -653,6 +653,12 @@ class HTTP_Download
                 $content_type = 'x-bzip2';
             break;
 
+            case HTTP_DOWNLOAD_ZIP:
+                include_once 'Archive/Zip.php';
+                $arc = &new Archive_Zip($tmp);
+                $content_type = 'x-zip';
+            break;
+            
             default:
                 return PEAR::raiseError(
                     'Archive type not supported: ' . $type,
@@ -660,11 +666,17 @@ class HTTP_Download
                 );
         }
         
-        if (!$e = $arc->createModify($files, $add_path, $strip_path)) {
-            return PEAR::raiseError('Archive creation failed.');
-        }
-        if (PEAR::isError($e)) {
-            return $e;
+        if ($type == HTTP_DOWNLOAD_ZIP) {
+            if (!$arc->create($files, array('add_path' => $add_path, 'remove_path' => $strip_path))) {
+                return PEAR::raiseError('Archive createon failed.');
+            }
+        } else {
+            if (!$e = $arc->createModify($files, $add_path, $strip_path)) {
+                return PEAR::raiseError('Archive creation failed.');
+            }
+            if (PEAR::isError($e)) {
+                return $e;
+            }
         }
         unset($arc);
         
