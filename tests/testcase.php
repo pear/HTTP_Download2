@@ -118,12 +118,14 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
             $r->sendRequest();
             $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
             $this->assertEquals('67890', $r->getResponseBody(), $what);
+            $this->assertTrue(preg_match('/^bytes 95-\d+/', $r->getResponseHeader('content-range')), 'bytes keyword in Content-Range header');
             
             // multiple range
             $r->addHeader('Range', 'bytes=2-23,45-51,22-46');
             $r->sendRequest();
             $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
             $this->assertTrue(preg_match('/^multipart\/byteranges; boundary=HTTP_DOWNLOAD-[a-f0-9.]{23}$/', $r->getResponseHeader('content-type')), 'Content-Type header: multipart/byteranges');
+            $this->assertTrue(preg_match('/Content-Range: bytes 2-23/', $r->getResponseBody()), 'bytes keyword in Content-Range header');
         }
         unset($r);
     } 
