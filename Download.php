@@ -469,9 +469,7 @@ class HTTP_Download extends HTTP_Header
         /**
         * HTTP Compression
         */
-        if ($this->_gzip) {
-            @ob_start('ob_gzhandler');
-        } else {
+        if (!$this->_gzip || !@ob_start('ob_gzhandler')) {
             $this->_headers['Content-Length'] = $length;
         }
         
