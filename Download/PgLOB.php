@@ -112,7 +112,7 @@ class HTTP_Download_PgLOB
         if (!preg_match('/(\d+)/', $path, $matches)) {
             return false;
         }
-        list(, $this->ID) = $matches;
+        $this->ID = $matches[1];
         
         pg_query($conn, 'BEGIN');
         $this->handle = pg_lo_open($conn, $this->ID, $mode);
