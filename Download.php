@@ -551,8 +551,8 @@ class HTTP_Download extends HTTP_Header
                     // Check if Range and file size equal
                     if ($length == $this->_size) {
                         // Send the whole thingy
-                        $begin      = 0;
-                        $length     = $this->_size;
+                        $begin  = 0;
+                        $end    = $this->_size;
 
                     // Check if anything bursts filesize
                     } elseif (  $end    > $this->_size || 
