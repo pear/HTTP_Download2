@@ -979,8 +979,11 @@ class HTTP_Download
             $this->HTTP->setHeader($header, $value);
         }
         $this->HTTP->sendHeaders();
-        ob_flush();
-        flush();
+        /* NSAPI won't output anything if we did this */
+        if (strcasecmp(PHP_SAPI, 'nsapi')) {
+            ob_flush();
+            flush();
+        }
     }
     
     /**
