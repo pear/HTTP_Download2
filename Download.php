@@ -463,7 +463,6 @@ class HTTP_Download extends HTTP_Header
                 if ($this->_handle) {
                     rewind($this->_handle);
                     fpassthru($this->_handle);
-                    fclose($this->_handle);
                 } else {
                     readfile($this->_file);
                 }
