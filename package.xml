@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.21 $ -->
+<!-- $Revision: 1.22 $ -->
 <package version="1.0">
   <name>HTTP_Download</name>
   <license>PHP</license>
@@ -22,14 +22,23 @@ It features HTTP caching, compression, ranges (partial downloads and resuming) a
     <date>2004-08-31</date>
     <state>beta</state>
     <notes>
+<![CDATA[
+Fixes:
+======
 * Adjusted cache headers to force IE to revalidate
 * Attempt to fix Bug #2110 (long delay until "Save as..." popup)
+
+Features:
+=========
++ Added the possibility to send HTTP responses 
+  without a "Content-Disposition" header
 + Implemented kind of a throttling mechanism
   This can be done by setting $bufferSize through 
   HTTP_Download::setBufferSize($bytes) and adjusting $throttleDelay
   through HTTP_Download::setThrottleDelay($seconds), e.g. a
   buffer size of 25600 bytes and a throttle delay of 1 second
   will lead to a download rate of approximatly 25 KB/s.
+]]>
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="HTTP">
