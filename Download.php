@@ -791,7 +791,7 @@ class HTTP_Download
             } elseif (is_resource($this->handle)) {
                 $md5 = md5(serialize(fstat($this->handle)));
             } else {
-                $md5 = md5(serlialize(stat($this->file)));
+                $md5 = md5(serialize(stat($this->file)));
             }
             $this->etag = '"' . $md5 . '-' . crc32($md5) . '"';
         }
