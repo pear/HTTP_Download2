@@ -217,6 +217,7 @@ class HTTP_Download
      *                  o 'lastmodified'        => unix timestamp
      *                  o 'contenttype'         => content type of download
      *                  o 'contentdisposition'  => content disposition
+     *                  o 'buffersize'          => amount of bytes to buffer
      * 
      * <br />
      * 'Content-Disposition' is not HTTP compliant, but most browsers 
