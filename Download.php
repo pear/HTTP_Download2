@@ -558,7 +558,7 @@ class HTTP_Download
      *        (HTTP_DOWNLOAD_E_NO_EXT_MMAGIC)
      *      o mime_content_type() couldn't guess content type or returned
      *        a content type considered to be bogus by setContentType()
-     *        (HTTP_DONWLOAD_E_INVALID_CONTENT_TYPE)
+     *        (HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE)
      * 
      * @access  public
      * @return  mixed   Returns true on success or PEAR_Error on failure.
@@ -580,7 +580,7 @@ class HTTP_Download
         if (!$content_type = @mime_content_type($this->file)) {
             return PEAR::raiseError(
                 'Couldn\'t guess content type with mime_content_type().',
-                HTTP_DONWLOAD_E_INVALID_CONTENT_TYPE
+                HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE
             );
         }
         return $this->setContentType($content_type);
