@@ -32,7 +32,7 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
         $h = &new HTTP_Download;
         $this->assertFalse(PEAR::isError($h->setFile('data.txt')), '$h->setFile("data.txt")');
         $this->assertEquals(realpath('data.txt'), $h->file, '$h->file == "data.txt');
-        $this->assertTrue(PEAR::isError($h->setFile('nonexistant')), '$h->setFile("nonexistant")');
+        $this->assertTrue(PEAR::isError($h->setFile('nonexistant', false)), '$h->setFile("nonexistant")');
         unset($h);
     } 
 
