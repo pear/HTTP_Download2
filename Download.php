@@ -187,6 +187,14 @@ class HTTP_Download
      * @var     string
      */
     var $etag = '';
+    
+    /**
+     * Buffer Size
+     * 
+     * @access  protected
+     * @var     int
+     */
+    var $bufferSize = 2097152;
     // }}}
     
     // {{{ constructor
@@ -391,6 +399,33 @@ class HTTP_Download
     function setCache($cache = true)
     {
         $this->cache = (bool) $cache;
+    }
+    
+    /**
+     * Set Size of Buffer
+     * 
+     * The amount of bytes specified as buffer size is the maximum amount
+     * of data read at once from resources or files.  The default size is 2M
+     * (2097152 bytes).  Be aware that if you enable gzip compression and
+     * you set a very low buffer size that the actual file size may grow
+     * due to added gzip headers for each sent chunk of the specified size.
+     * 
+     * Returns PEAR_Error (HTTP_DOWNLOAD_E_INVALID_PARAM) if $size is not
+     * greater than 0 bytes.
+     * 
+     * @access  public
+     * @return  mixed   Returns true on success or PEAR_Error on failure.
+     * @param   int     $bufferSize Amount of bytes to use as buffer.
+     */
+    function setBufferSize($size = 2097152)
+    {
+        if (0 >= (int) $size) {
+            return PEAR::raiseError(
+                'Buffer size must be greater than 0 bytes ('. $size .' given)',
+                HTTP_DOWNLOAD_E_INVALID_PARAM);
+        }
+        $this->bufferSize = (int) $size;
+        return true;
     }
     
     /**
@@ -779,12 +814,12 @@ class HTTP_Download
             }
             fseek($this->handle, $offset);
             // only read 2M at once
-            while (($length -= 2097152) > 0) {
-                echo fread($this->handle, 2097152);
+            while (($length -= $this->bufferSize) > 0) {
+                echo fread($this->handle, $this->bufferSize);
                 ob_flush();
             }
             if ($length) {
-                echo fread($this->handle, 2097152 + $length);
+                echo fread($this->handle, $this->bufferSize + $length);
                 ob_flush();
             }
         }
