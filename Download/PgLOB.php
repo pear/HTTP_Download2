@@ -171,7 +171,12 @@ class HTTP_Download_PgLOB
     
     function stream_close()
     {
-        return pg_lo_close($this->handle) && pg_query($this->conn, 'COMMIT');
+        if (pg_lo_close($this->handle)) {
+            return pg_query($this->conn, 'COMMIT');
+        } else {
+            pg_query($this->conn ,'ROLLBACK');
+            return false;
+        }
     }
     /**#@-*/
 }
