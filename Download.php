@@ -606,7 +606,7 @@ class HTTP_Download
                 HTTP_DOWNLOAD_E_HEADERS_SENT
             );
         }
-
+        
         set_time_limit(0);
         
         if ($autoSetContentDisposition && 
@@ -623,6 +623,10 @@ class HTTP_Download
             }
         } else {
             unset($this->headers['Last-Modified']);
+        }
+        
+        while (ob_get_level()) {
+            ob_end_clean();
         }
         
         if ($this->gzip) {
@@ -649,6 +653,7 @@ class HTTP_Download
         }
         
         ob_end_flush();
+        flush();
         return true;
     }    
 
@@ -856,22 +861,29 @@ class HTTP_Download
         }
 
         if ($this->data) {
-            echo substr($this->data, $offset, $length);
+            while (($length -= $this->bufferSize) > 0) {
+                $this->flush(substr($this->data, $offset, $this->bufferSize));
+                if ($this->throttleDelay) {
+                    sleep($this->throttleDelay);
+                }
+                $offset += $this->bufferSize;
+            }
+            if ($length) {
+                $this->flush(substr($this->data, $offset, $this->bufferSize + $length));
+            }
         } else {
             if (!is_resource($this->handle)) {
                 $this->handle = fopen($this->file, 'rb');
             }
             fseek($this->handle, $offset);
             while (($length -= $this->bufferSize) > 0) {
-                echo fread($this->handle, $this->bufferSize);
-                ob_flush();
+                $this->flush(fread($this->handle, $this->bufferSize));
                 if ($this->throttleDelay) {
                     sleep($this->throttleDelay);
                 }
             }
             if ($length) {
-                echo fread($this->handle, $this->bufferSize + $length);
-                ob_flush();
+                $this->flush(fread($this->handle, $this->bufferSize + $length));
             }
         }
         return true;
@@ -999,7 +1011,23 @@ class HTTP_Download
         }
         $this->HTTP->sendHeaders();
         ob_flush();
+        flush();
     }
+    
+    /**
+     * Flush
+     * 
+     * @access  protected
+     * @return  void
+     * @param   string  $data
+     */
+    function flush($data = '')
+    {
+        print $data;
+        ob_flush();
+        flush();
+    }
+    
     // }}}
 }
 ?>
