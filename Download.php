@@ -182,16 +182,19 @@ class HTTP_Download extends HTTP_Header
     * 
     * @access   public
     * @param    array   $params     associative array of parameters
-    *           one of:
+    * 
+    *           <b>one of:</b>
     *                   o 'file'                => path to file for download
     *                   o 'data'                => raw data for download
     *                   o 'resource'            => resource handle for download
-    *           and any of:
+    * <br/>
+    *           <b>and any of:</b>
     *                   o 'gzip'                => whether to gzip the download
     *                   o 'lastmodified'        => unix timestamp
     *                   o 'contenttype'         => content type of download
     *                   o 'contentdisposition'  => content disposition
     * 
+    * <br />
     * 'Content-Disposition' is not HTTP compliant, but most browsers 
     * follow this header, so it was borrowed from MIME standard.
     * 
@@ -202,21 +205,6 @@ class HTTP_Download extends HTTP_Header
     */
     function HTTP_Download($params = array())
     {
-        /**
-        * Raise a PEAR_Error if PHP's on-the-fly output compression is enabled
-        */
-        if (    ini_get('zlib.output_compression') ||
-                ini_get('output_handler') == 'ob_gzhandler' )
-        {
-            PEAR::raiseError(
-                'Be aware: You\'re using PHP\'s on-the-fly output ' .
-                ' compression. Files may be corrupted!'
-            );
-        }
-
-        /**
-        * Set supplied parameters
-        */
         $this->setParams($params);
     }
     
@@ -451,7 +439,7 @@ class HTTP_Download extends HTTP_Header
         /**
         * HTTP Compression
         */
-        if ($this->_gzip) {
+        if ($this->_gzip && extension_loaded('zlib')) {
             ob_start('ob_gzhandler');
         }
         
@@ -466,7 +454,7 @@ class HTTP_Download extends HTTP_Header
                 if ($this->_handle) {
                     rewind($this->_handle);
                     fpassthru($this->_handle);
-                    fclose($this->_handle);
+                    @fclose($this->_handle);
                 } else {
                     readfile($this->_file);
                 }
