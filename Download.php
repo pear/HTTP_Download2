@@ -683,8 +683,9 @@ class HTTP_Download
     /** 
     * Send multiple chunks
     * 
-    * @access   public
-    * @return   mixed
+    * @access   protected
+    * @return   mixed   Returns true on success or PEAR_Error on failure.
+    * @param    array   $chunks
     */
     function sendChunks($chunks)
     {
@@ -711,8 +712,10 @@ class HTTP_Download
     * Send chunk of data
     * 
     * @access   protected
-    * @return   mixed
-    * @param    array   $chunk
+    * @return   mixed   Returns true on success or PEAR_Error on failure.
+    * @param    array   $chunk  start and end offset of the chunk to send
+    * @param    string  $cType  actual content type
+    * @param    string  $bound  boundary for multipart/byteranges
     */
     function sendChunk($chunk, $cType = null, $bound = null)
     {
@@ -775,8 +778,7 @@ class HTTP_Download
     * Check if range is requested
     * 
     * @access   protected
-    * @return   mixed
-    * @param    bool
+    * @return   bool
     */
     function isRangeRequest()
     {
@@ -795,7 +797,7 @@ class HTTP_Download
     function getRanges()
     {
         return preg_match('/^bytes=((\d*-\d*,?)+)$/', 
-            @$_SERVER['HTTP_RANGE'], $matches) ? $matches[1] : null;
+            @$_SERVER['HTTP_RANGE'], $matches) ? $matches[1] : array();
     }
     
     /** 
@@ -806,9 +808,12 @@ class HTTP_Download
     */
     function isCached()
     {
-        return 
-            isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&
-            $this->lastModified === $_SERVER['HTTP_IF_MODIFIED_SINCE'];
+        return (
+            (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&
+            $this->lastModified === $_SERVER['HTTP_IF_MODIFIED_SINCE']) ||
+            (isset($_SERVER['HTTP_IF_NONE_MATCH']) &&
+            $this->compareAsterisk('HTTP_IF_NONE_MATCH', $this->etad))
+        );
     }
     
     /** 
@@ -819,10 +824,6 @@ class HTTP_Download
     */
     function isValidRange()
     {
-        if (isset($_SERVER['HTTP_IF_NONE_MATCH']) &&
-            $this->compareAsterisk('HTTP_IF_NONE_MATCH', $this->etag)) {
-            return false;
-        }
         if (isset($_SERVER['HTTP_IF_MATCH']) &&
             !$this->compareAsterisk('HTTP_IF_MATCH', $this->etag)) {
             return false;
