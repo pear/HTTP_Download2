@@ -607,7 +607,9 @@ class HTTP_Download
             );
         }
         
-        set_time_limit(0);
+        if (!ini_get('safe_mode')) {
+            @set_time_limit(0);
+        }
         
         if ($autoSetContentDisposition && 
             !isset($this->headers['Content-Disposition'])) {
