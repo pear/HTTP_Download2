@@ -622,11 +622,7 @@ class HTTP_Download
                 return true;
             }
         } else {
-            unset(
-                $this->headers['Pragma'],
-                $this->headers['Last-Modified'],
-                $this->headers['Cache-Control']
-            );
+            unset($this->headers['Last-Modified']);
         }
         
         if ($this->gzip) {
