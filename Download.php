@@ -21,6 +21,7 @@
 * @category     HTTP
 */
 
+// {{{ includes
 /**
 * Requires PEAR
 */
@@ -30,7 +31,9 @@ require_once 'PEAR.php';
 * Requires HTTP_Header
 */
 require_once 'HTTP/Header.php';
+// }}}
 
+// {{{ constants
 /**#@+ Use with HTTP_Download::setContentDisposition() **/
 /**
 * Send data as attachment
@@ -74,6 +77,7 @@ define('HTTP_DOWNLOAD_E_INVALID_REQUEST',       -7);
 define('HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE',  -8);
 define('HTTP_DOWNLOAD_E_INVALID_ARCHIVE_TYPE',  -9);
 /**#@-**/
+// }}}
 
 /** 
 * Send HTTP Downloads.
@@ -128,6 +132,7 @@ define('HTTP_DOWNLOAD_E_INVALID_ARCHIVE_TYPE',  -9);
 */
 class HTTP_Download
 {
+    // {{{ protected member variables
     /**
     * Path to file for download
     *
@@ -207,7 +212,9 @@ class HTTP_Download
     * @var      string
     */
     var $etag = '';
-       
+    // }}}
+    
+    // {{{ constructor
 	/**
     * Constructor
     *
@@ -238,10 +245,21 @@ class HTTP_Download
     */
     function HTTP_Download($params = array())
     {
+        HTTP_Download::__construct($params);
+    }
+    
+    /**
+    * ZE2 Constructor
+    * @ignore
+    */
+    function __construct($params = array())
+    {
         $this->setParams($params);
         $this->HTTP = &new HTTP_Header;
     }
+    // }}}
     
+    // {{{ public methods
     /**
     * Set parameters
     *
@@ -627,7 +645,9 @@ class HTTP_Download
         $dl->setContentDisposition(HTTP_DOWNLOAD_ATTACHMENT, $name);
         return $dl->send();
     }
-
+    // }}}
+    
+    // {{{ protected methods
     /** 
     * Generate ETag
     * 
@@ -685,7 +705,7 @@ class HTTP_Download
         list($offset, $lastbyte) = $chunk;
         $length = ($lastbyte - $offset) + 1;
         
-        if ($length < 0) {
+        if ($length < 1) {
             return PEAR::raiseError(
                 "Error processing range request: $offset-$lastbyte/$length",
                 HTTP_DOWNLOAD_E_INVALID_REQUEST
@@ -831,5 +851,6 @@ class HTTP_Download
         }
         $this->HTTP->sendHeaders();
     }
+    // }}}
 }
 ?>
