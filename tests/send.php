@@ -7,7 +7,7 @@ PEAR::setErrorHandling(PEAR_ERROR_PRINT);
 
 $params = @$_GET['params'];
 
-switch (@$_GET['what'])
+switch ($_GET['what'])
 {
     case 'file':
         $params['file'] = 'data.txt';
@@ -33,7 +33,7 @@ switch ($_GET['op'])
     break;
     
     case 'arch':
-        HTTP_Download::sendArchive('foo'. $params['type'], $_GET['what']);
+        HTTP_Download::sendArchive('foo.'. $_GET['type'], $_GET['what'], $_GET['type']);
     break;
 }
 

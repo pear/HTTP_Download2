@@ -88,14 +88,14 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
         unset($h, $e);
     } 
 
-    function testsend()
+    function _send($op)
     {
         $r = &new HTTP_Request($this->testScript);
         foreach (array('file', 'resource', 'data') as $what) {
             $r->reset($this->testScript);
             
             // without range
-            $r->addQueryString('op', 'send');
+            $r->addQueryString('op', $op);
             $r->addQueryString('what', $what);
             $r->sendRequest();
             $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
@@ -127,12 +127,31 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
         }
         unset($r);
     } 
+    
+    function testsend()
+    {
+        $this->_send('send');
+    }
+    
     function teststaticSend()
     {
+        $this->_send('static');
     } 
 
     function testsendArchive()
     {
+        $r = &new HTTP_Request($this->testScript);
+        foreach (array('tar', 'tgz', 'zip', 'bz2') as $type) {
+            $r->addQueryString('type', $type);
+            $r->addQueryString('op', 'arch');
+            
+            $r->addQueryString('what', 'data.txt');
+            $r->sendRequest();
+            $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
+            $this->assertTrue($r->getResponseHeader('content-length') > 0, 'Content-Length > 0');
+            $this->assertTrue(preg_match('/application\/x-(tar|gzip|bzip2|zip)/', $t = $r->getResponseHeader('content-type')), 'Reasonable Content-Type for '. $type .' (actual: '. $t .')');
+        }
+        unset($r);
     } 
 
 } 
