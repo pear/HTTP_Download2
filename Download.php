@@ -395,7 +395,7 @@ class HTTP_Download
     /**
      * Set "Last-Modified"
      *
-     * This is usually determined by filemtime($file) in HTTP_Download::setFile()
+     * This is usually determined by filemtime() in HTTP_Download::setFile()
      * If you set raw data for download with HTTP_Download::setData() and you
      * want do send an appropiate "Last-Modified" header, you should call this
      * method.
@@ -430,10 +430,8 @@ class HTTP_Download
      * );
      * </code>
      */
-    function setContentDisposition(
-        $disposition = HTTP_DOWNLOAD_ATTACHMENT, 
-        $file_name = null
-    )
+    function setContentDisposition( $disposition    = HTTP_DOWNLOAD_ATTACHMENT, 
+                                    $file_name      = null)
     {
         $cd = $disposition;
         if (isset($file_name)) {
@@ -627,7 +625,11 @@ class HTTP_Download
      * @param   string  $add_path   path that should be prepended to the files
      * @param   string  $strip_path path that should be stripped from the files
      */
-    function sendArchive($name, $files, $type = HTTP_DOWNLOAD_TGZ, $add_path = '', $strip_path = '')
+    function sendArchive(   $name, 
+                            $files, 
+                            $type       = HTTP_DOWNLOAD_TGZ, 
+                            $add_path   = '', 
+                            $strip_path = '')
     {
         require_once 'System.php';
         
@@ -667,7 +669,9 @@ class HTTP_Download
         }
         
         if ($type == HTTP_DOWNLOAD_ZIP) {
-            if (!$arc->create($files, array('add_path' => $add_path, 'remove_path' => $strip_path))) {
+            $options = array(   'add_path' => $add_path, 
+                                'remove_path' => $strip_path);
+            if (!$arc->create($files, $options)) {
                 return PEAR::raiseError('Archive createon failed.');
             }
         } else {
