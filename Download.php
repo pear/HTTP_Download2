@@ -866,7 +866,7 @@ class HTTP_Download
                 $this->handle = fopen($this->file, 'rb');
             }
             fseek($this->handle, $offset);
-            while (($length -= $this->bufferSize) >= 0) {
+            while (($length -= $this->bufferSize) > 0) {
                 echo fread($this->handle, $this->bufferSize);
                 ob_flush();
                 if ($this->throttleDelay) {
