@@ -836,7 +836,7 @@ class HTTP_Download
         if ($this->data) {
             while (($length -= $this->bufferSize) > 0) {
                 $this->flush(substr($this->data, $offset, $this->bufferSize));
-                $this->sleep();
+                $this->throttleDelay and $this->sleep();
                 $offset += $this->bufferSize;
             }
             if ($length) {
@@ -849,7 +849,7 @@ class HTTP_Download
             fseek($this->handle, $offset);
             while (($length -= $this->bufferSize) > 0) {
                 $this->flush(fread($this->handle, $this->bufferSize));
-                $this->sleep();
+                $this->throttleDelay and $this->sleep();
             }
             if ($length) {
                 $this->flush(fread($this->handle, $this->bufferSize + $length));
