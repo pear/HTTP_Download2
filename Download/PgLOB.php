@@ -101,6 +101,7 @@ class HTTP_Download_PgLOB
      * Stream Interface Implementation
      * @internal
      */
+    var $ID = 0;
     var $handle = null;
     
     function stream_open($path, $mode)
@@ -111,10 +112,10 @@ class HTTP_Download_PgLOB
         if (!preg_match('/(\d+)/', $path, $matches)) {
             return false;
         }
-        list(, $loid) = $matches;
+        list(, $this->ID) = $matches;
         
         pg_query($conn, 'BEGIN');
-        $this->handle = pg_lo_open($conn, $loid, $mode);
+        $this->handle = pg_lo_open($conn, $this->ID, $mode);
         return true;
     }
     
@@ -145,7 +146,7 @@ class HTTP_Download_PgLOB
     
     function streas_stat()
     {
-        return array('random' => uniqid('HTTP_Download_PgLOB-', true));
+        return array('loid' => $this->ID);
     }
     
     function stream_write($data)
