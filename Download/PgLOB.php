@@ -138,6 +138,16 @@ class HTTP_Download_PgLOB
         return false;
     }
     
+    function stream_flush()
+    {
+        return true;
+    }
+    
+    function streas_stat()
+    {
+        return array('random' => uniqid('HTTP_Download_PgLOB-', true));
+    }
+    
     function stream_write($data)
     {
         return pg_lo_write($this->handle, $data);
