@@ -316,13 +316,20 @@ class HTTP_Download extends HTTP_Header
     /**
     * Whether to gzip the download
     *
+    * Returns a PEAR_Error if ext/zlib is not available
+    * 
+    * @throws   PEAR_Error
     * @access   public
-    * @return   void
+    * @return   mixed   true on success or PEAR_Error
     * @param    bool    $gzip   whether to gzip the download
     */
     function setGzip($gzip = false)
     {
+        if ($gzip && !extension_loaded('zlib') && !PEAR::loadExtension('zlib')) {
+            return PEAR::raiseError('Compression (ext/zlib) not available.');
+        }
         $this->_gzip = (bool) $gzip;
+        return true;
     }
 
     /**
@@ -439,7 +446,7 @@ class HTTP_Download extends HTTP_Header
         /**
         * HTTP Compression
         */
-        if ($this->_gzip && extension_loaded('zlib')) {
+        if ($this->_gzip) {
             ob_start('ob_gzhandler');
         }
         
