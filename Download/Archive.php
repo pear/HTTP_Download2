@@ -27,6 +27,11 @@
  */
 require_once 'HTTP/Download.php';
 
+/**
+ * Requires System
+ */
+require_once 'System.php';
+
 /** 
  * HTTP_Download_Archive
  * 
@@ -64,8 +69,6 @@ class HTTP_Download_Archive
      */
     function send($name, $files, $type = HTTP_DOWNLOAD_TGZ, $add_path = '', $strip_path = '')
     {
-        require_once 'System.php';
-        
         $tmp = System::mktemp();
         
         switch ($type = strToUpper($type))
