@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.19 $ -->
+<!-- $Revision: 1.20 $ -->
 <package version="1.0">
   <name>HTTP_Download</name>
   <license>PHP</license>
@@ -16,12 +16,13 @@ Provides an interface to easily send hidden files or any arbitrary data to the c
     </maintainer>
   </maintainers>
   <release>
-    <version>0.8.1</version>
-    <date>2004-07-08</date>
+    <version>0.9.0</version>
+    <date>2004-07-19</date>
     <state>beta</state>
     <notes>
-* Internet Explorer depends on a Pragma header
-  (While it worked fine for me, many people reported this problem)
++ Now a Content-Length header is sent if the whole uncompressed 
+  download is delivered. (satisfying some download accelerators)
++ Added support for ZIP archives through Archive_ZIP (CVS only)
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="HTTP">
