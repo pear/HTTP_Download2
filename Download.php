@@ -779,10 +779,14 @@ class HTTP_Download
             }
             fseek($this->handle, $offset);
             // only read 2M at once
-            do {
+            while (($length -= 2097152) > 0) {
                 echo fread($this->handle, 2097152);
                 ob_flush();
-            } while (($length -= 2097152) > 0);
+            }
+            if ($length) {
+                echo fread($this->handle, 2097152 + $length);
+                ob_flush();
+            }
         }
         return true;
     }
