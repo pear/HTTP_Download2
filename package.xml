@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.17 $ -->
+<!-- $Revision: 1.18 $ -->
 <package version="1.0">
   <name>HTTP_Download</name>
   <license>PHP</license>
@@ -16,13 +16,11 @@ Provides an interface to easily send hidden files or any arbitrary data to the c
     </maintainer>
   </maintainers>
   <release>
-    <version>0.7.0</version>
-    <date>2004-05-04</date>
+    <version>0.8.0</version>
+    <date>2004-06-07</date>
     <state>beta</state>
     <notes>
-+ Implemented HTTP/1.1 compliant range support (includes support for multiple range requests like: "Range: bytes=1224-2247,7448-10223,536-747" served as multipart/byteranges)
-+ Added support for the ETag response header as well as If-Match and If-None-Match request header (caching purposes)
-* Updated required PHP version to 4.2.0
++ Caching of the download is now optional and can be configured.
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="HTTP">
