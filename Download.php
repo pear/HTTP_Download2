@@ -1,6 +1,6 @@
 <?php
 // +----------------------------------------------------------------------+
-// | PEAR :: HTTP :: Download                                                             |
+// | PEAR :: HTTP :: Download                                             |
 // +----------------------------------------------------------------------+
 // | This source file is subject to version 3.0 of the PHP license,       |
 // | that is available at http://www.php.net/license/3_0.txt              |
@@ -61,7 +61,7 @@ define('HTTP_DOWNLOAD_INLINE', 'inline');
 * <code>
 * 
 * $params = array(
-*   'file'                  => '../hidden/download.tgz'),
+*   'file'                  => '../hidden/download.tgz',
 *   'contenttype'           => 'application/x-gzip',
 *   'contentdisposition'    => array(HTTP_DOWNLOAD_ATTACHMENT, 'latest.tgz'),
 * );
@@ -346,9 +346,8 @@ class HTTP_Download extends HTTP_Header
     */
     function setLastModified($last_modified)
     {
-        $lm = (int) $last_modified;
-        $this->_last_modified               = HTTP::Date($lm);
-        $this->_headers['Last-Modified']    = $lm;
+        $this->_last_modified            = HTTP::Date((int) $last_modified);
+        $this->_headers['Last-Modified'] = $this->_last_modified;
     }
     
     /**
@@ -397,7 +396,7 @@ class HTTP_Download extends HTTP_Header
     */
     function setContentType($content_type = 'application/x-octetstream')
     {
-        if (!preg_match('/^[a-z]+\w*\/[a-z]+[\w. -]*$/', $content_type)) {
+        if (!preg_match('/^[a-z]+\w*\/[a-z]+[\w.;= -]*$/', $content_type)) {
             return PEAR::raiseError(
                 "Invalid content type '$content_type' supplied."
             );
@@ -494,8 +493,10 @@ class HTTP_Download extends HTTP_Header
     */
     function _processRequest()
     {
-        $begin  = 0;
-        $length = $this->_size;
+        $begin      = 0;
+        $length     = $this->_size;
+        $send_range = false;
+
         /**
         * Handle Ranges (partial downloads)
         */
@@ -516,6 +517,7 @@ class HTTP_Download extends HTTP_Header
                     $send_range = false;
                 } 
             }
+
             if ($send_range) {
                 if (preg_match( '/^bytes=(\d*).*?(\d*)$/i', 
                                 $_SERVER['HTTP_RANGE'], 
@@ -533,28 +535,29 @@ class HTTP_Download extends HTTP_Header
                     
                     // Calculate the desired Range
                     if (!$bytes[1]) {
-                        $length = $bytes[2];
+                        $length = $bytes[2] + 1;
                         $end    = $this->_size;
                         $begin  = $end - $length;
                     } elseif (!$bytes[2]) {
                         $begin  = $bytes[1];
                         $end    = $this->_size;
-                        $length = $end - $begin;
+                        $length = ($end - $begin) + 1;
                     } else {
                         $begin  = $bytes[1];
                         $end    = $bytes[2];
-                        $length = $end - $begin;
+                        $length = ($end - $begin) + 1;
                     }
-                    
+
                     // Check if Range and file size equal
                     if ($length == $this->_size) {
                         // Send the whole thingy
-                        $begin  = 0;
-                        $end    = $this->_size;
+                        $begin      = 0;
+                        $end        = $length;
+                        $send_range = false;
 
                     // Check if anything bursts filesize
-                    } elseif (  $end    > $this->_size || 
-                                $length > $this->_size ) 
+                    } elseif (  $end + 1 > $this->_size || 
+                                $length  > $this->_size ) 
                     {
                         // Range is not valid
                         $this->sendStatusCode(HTTP_HEADER_STATUS_416);
@@ -564,9 +567,6 @@ class HTTP_Download extends HTTP_Header
 
                     // Else all's gone fine
                     } else {
-
-                        // Send status code for partial content
-                        $this->sendStatusCode(HTTP_HEADER_STATUS_206);
 
                         // Set content range header
                         $this->_headers['Content-Range'] =
@@ -587,7 +587,7 @@ class HTTP_Download extends HTTP_Header
         }
 
         /**
-        * Else send download if not already cached
+        * Don't send data if cached - "HTTP/1.x 304 Not Modified"
         */
         if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
             if ($_SERVER['HTTP_IF_MODIFIED_SINCE'] == $this->_last_modified ) {
@@ -599,8 +599,18 @@ class HTTP_Download extends HTTP_Header
                 );
             }
         }
-        $this->sendStatusCode(HTTP_HEADER_STATUS_200);
-        $this->_headers['Content-Length'] = $this->_size;
+        
+        /**
+        * Send "HTTP/1.x 206 Partial Content" if we send a part
+        * Send "HTTP/1.x 200 Ok" if we send the whole thingy
+        */
+        if ($send_range) {
+            $this->sendStatusCode(HTTP_HEADER_STATUS_206);
+        } else {
+            $this->sendStatusCode(HTTP_HEADER_STATUS_200);
+        }
+        
+        $this->_headers['Content-Length'] = $length;
         return array($begin, $length);
     }
     
@@ -622,6 +632,9 @@ class HTTP_Download extends HTTP_Header
     {
         if (!function_exists('mime_content_type')) {
             return PEAR::raiseError('This feature requires ext/magic.mime!');
+        }
+        if (!is_file(ini_get('mime_magic.magicfile'))) {
+            return PEAR::raiseError('mime_magic is loaded but not configured!');
         }
         return $this->setContentType(mime_content_type($this->_file));
     }
@@ -655,6 +668,5 @@ class HTTP_Download extends HTTP_Header
         }
         return $d->send();
     }
-    
 }
 ?>
