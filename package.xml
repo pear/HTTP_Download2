@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.24 $ -->
+<!-- $Revision: 1.25 $ -->
 <package version="1.0">
   <name>HTTP_Download</name>
   <license>PHP</license>
@@ -25,17 +25,23 @@ It features:
     </maintainer>
   </maintainers>
   <release>
-    <version>1.0.0RC1</version>
-    <date>2004-12-01</date>
+    <version>1.0.0RC2</version>
+    <date>2004-12-16</date>
     <state>beta</state>
     <notes>
 <![CDATA[
-1st RC for stable release
+2nd RC for stable release
+* Bundled PgLOB stream wrapper (sending PgSQL BLOBs through setResource())
+* ETag is now customizable through setEtag()
+* Now using md5(serialize(stat($file))) instead of md5_file($file) for etag generation
 ]]>
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="HTTP">
         <file role="php">Download.php</file>
+        <dir name="Download">
+          <file role="php">PgLOB.php</file>
+        </dir>
       </dir>
       <file role="test" install-as="send.php">tests/send.php</file>
       <file role="test" install-as="testcase.php">tests/testcase.php</file>
