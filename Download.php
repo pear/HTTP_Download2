@@ -165,6 +165,7 @@ class HTTP_Download
      */
     var $headers   = array(
         'Content-Type'  => 'application/x-octetstream',
+        'Pragma'        => 'cache',
         'Cache-Control' => 'public',
         'Accept-Ranges' => 'bytes',
         'Connection'    => 'close'
@@ -538,6 +539,7 @@ class HTTP_Download
             }
         } else {
             unset(
+                $this->headers['Pragma'],
                 $this->headers['Last-Modified'],
                 $this->headers['Cache-Control']
             );
