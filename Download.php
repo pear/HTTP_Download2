@@ -672,7 +672,7 @@ class HTTP_Download
             $options = array(   'add_path' => $add_path, 
                                 'remove_path' => $strip_path);
             if (!$arc->create($files, $options)) {
-                return PEAR::raiseError('Archive createon failed.');
+                return PEAR::raiseError('Archive creation failed.');
             }
         } else {
             if (!$e = $arc->createModify($files, $add_path, $strip_path)) {
