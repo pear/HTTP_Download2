@@ -8,7 +8,7 @@
 // | to obtain it through the world-wide-web, please send a note to       |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 2003 Michael Wallner <mike@iworks.at>                  |
+// | Copyright (c) 2003-2004 Michael Wallner <mike@iworks.at>             |
 // +----------------------------------------------------------------------+
 //
 // $Id$
