@@ -585,7 +585,7 @@ class HTTP_Download extends HTTP_Header
                         $send_range = false;
 
                     // Check if anything bursts filesize
-                    } elseif (  $end + 1 > $this->_size || 
+                    } elseif (  $end > $this->_size || 
                                 $length  > $this->_size ) 
                     {
                         // Range is not valid
