@@ -287,7 +287,7 @@ class HTTP_Download extends HTTP_Header
     * Set resource for download
     *
     * The resource handle supplied will be closed after sending the download.
-    * Set <var>$handle</var> to null if you want to unset the resource handle.
+    * 
     * Returns a PEAR_Error if <var>$handle</var> is no valid resource.
     * 
     * @throws   PEAR_Error
@@ -295,7 +295,7 @@ class HTTP_Download extends HTTP_Header
     * @return   mixed   true on success or PEAR_Error
     * @param    int     $handle     resource handle
     */
-    function setResource(&$handle)
+    function setResource($handle = null)
     {
         // Check if $handle is a valid resource
         if (!is_resource($handle)) {
@@ -308,7 +308,7 @@ class HTTP_Download extends HTTP_Header
                 $this->_size    = 0;
             }
         } else {
-            $this->_handle  = &$handle;
+            $this->_handle  = $handle;
             $stats          = fstat($handle);
             $this->_size    = $stats['size'];
         }
