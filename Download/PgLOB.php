@@ -102,6 +102,7 @@ class HTTP_Download_PgLOB
      * @internal
      */
     var $ID = 0;
+    var $size = 0;
     var $handle = null;
     
     function stream_open($path, $mode)
@@ -116,6 +117,9 @@ class HTTP_Download_PgLOB
         
         pg_query($conn, 'BEGIN');
         $this->handle = pg_lo_open($conn, $this->ID, $mode);
+        pg_lo_seek($this->handle, 0, PGSQL_SEEK_END);
+        $this->size = (int) pg_lo_tell($this->handle);
+        pg_lo_seek($this->handle, 0, PGSQL_SEEK_SET);
         return true;
     }
     
@@ -136,7 +140,7 @@ class HTTP_Download_PgLOB
     
     function stream_eof()
     {
-        return false;
+        return pg_lo_tell($this->handle) >= $this->size;
     }
     
     function stream_flush()
@@ -146,7 +150,7 @@ class HTTP_Download_PgLOB
     
     function stream_stat()
     {
-        return array('loid' => $this->ID);
+        return array('size' => $this->size, 'ino' => $this->ID);
     }
     
     function stream_write($data)
