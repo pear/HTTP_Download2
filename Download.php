@@ -1,18 +1,14 @@
 <?php
 // +----------------------------------------------------------------------+
-// | PHP Version 4                                                        |
+// | PEAR :: HTTP :: Download                                                             |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1997-2003 The PHP Group                                |
-// +----------------------------------------------------------------------+
-// | This source file is subject to version 2.0 of the PHP license,       |
-// | that is bundled with this package in the file LICENSE, and is        |
-// | available at through the world-wide-web at                           |
-// | http://www.php.net/license/2_02.txt.                                 |
-// | If you did not receive a copy of the PHP license and are unable to   |
-// | obtain it through the world-wide-web, please send a note to          |
+// | This source file is subject to version 3.0 of the PHP license,       |
+// | that is available at http://www.php.net/license/3_0.txt              |
+// | If you did not receive a copy of the PHP license and are unable      |
+// | to obtain it through the world-wide-web, please send a note to       |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Author: Michael Wallner <mike@php.net>                               |
+// | Copyright (c) 2003 Michael Wallner <mike@iworks.at>                  |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -26,11 +22,12 @@
 */
 
 /**
-* Requires PEAR.
+* Requires PEAR
 */
 require_once('PEAR.php');
+
 /**
-* Requires HTTP_Header.
+* Requires HTTP_Header
 */
 require_once('HTTP/Header.php');
 
@@ -39,6 +36,7 @@ require_once('HTTP/Header.php');
 * Send data as attachment
 */
 define('HTTP_DOWNLOAD_ATTACHMENT', 'attachment');
+
 /**
 * To set with HTTP_Download::setContentDisposition():
 * Send data inline
