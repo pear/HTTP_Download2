@@ -465,18 +465,21 @@ class HTTP_Download extends HTTP_Header
         if (!isset($this->_headers['Content-Disposition'])) {
             $this->setContentDisposition();
         }
-        /**
-        * Send HTTP headers
-        */
-        $this->sendHeaders();
         
         /**
         * HTTP Compression
         */
         if ($this->_gzip) {
-            ob_start('ob_gzhandler');
+            @ob_start('ob_gzhandler');
+        } else {
+            $this->_headers['Content-Length'] = $length;
         }
         
+        /**
+        * Send HTTP headers
+        */
+        $this->sendHeaders();
+
         /**
         * Send requested data (part)
         */
@@ -546,6 +549,10 @@ class HTTP_Download extends HTTP_Header
                 } 
             }
 
+            /**
+            * We don't provide complete http compliance and
+            * handle just basic range request (not combined)
+            */
             if ($send_range) {
                 if (preg_match( '/^bytes=(\d*).*?(\d*)$/i', 
                                 $_SERVER['HTTP_RANGE'], 
@@ -553,7 +560,8 @@ class HTTP_Download extends HTTP_Header
                 {
 
                     // First check if there is anything useable in Range header
-                    if (!$bytes[1] && !$bytes[2]) {
+                    if (    !$bytes[1] && !$bytes[2] && 
+                            $bytes[1] !== '0' && $bytes[2] !== '0') {
                         // Range is not valid
                         $this->sendStatusCode(416);
                         return PEAR::raiseError(
@@ -563,31 +571,40 @@ class HTTP_Download extends HTTP_Header
                     }
                     
                     // Calculate the desired Range
-                    if (!$bytes[1]) {
-                        $length = $bytes[2] + 1;
-                        $end    = $this->_size;
-                        $begin  = $end - $length;
-                    } elseif (!$bytes[2]) {
+                    if (!$bytes[1] && $bytes[1] !== '0') {
+                        // OK - Range: bytes=-5
+                        $length = $bytes[2];
+                        $end    = $this->_size - 1;
+                        $begin  = $this->_size - $length;
+                    } elseif (!$bytes[2] && $bytes[2] !== '0') {
+                        // OK - Range: bytes=5-
                         $begin  = $bytes[1];
-                        $end    = $this->_size;
-                        $length = ($end - $begin) + 1;
+                        $end    = $this->_size - 1;
+                        $length = $this->_size - $begin;
                     } else {
+                        // OK - Range: bytes=5-9
                         $begin  = $bytes[1];
                         $end    = $bytes[2];
                         $length = ($end - $begin) + 1;
                     }
 
-                    // Check if Range and file size equal
-                    if ($length == $this->_size) {
-                        // Send the whole thingy
+                    // Check if we're out of range
+                    if ($end > $this->_size || ($begin + $length) > $this->_size) {
+                        $end    = $this->_size - 1;
+                        $length = $this->_size - $begin;
+                    }
+                    
+                    // Check if range and file size equal
+                    // or second byte offset was less than
+                    // the first, so we just ignore the range 
+                    // header and send the hole thingy
+                    if ($length >= $this->_size || $length <= 0) {
                         $begin      = 0;
                         $end        = $length;
                         $send_range = false;
 
-                    // Check if anything bursts filesize
-                    } elseif (  $end > $this->_size || 
-                                $length  > $this->_size ) 
-                    {
+                    // Check if we're totally out of bounds
+                    } elseif ($begin > $this->_size) {
                         // Range is not valid
                         $this->sendStatusCode(416);
                         return PEAR::raiseError(
@@ -642,7 +659,6 @@ class HTTP_Download extends HTTP_Header
             $this->sendStatusCode(200);
         }
         
-        $this->_headers['Content-Length'] = $length;
         return array($begin, $length);
     }
     
