@@ -840,7 +840,8 @@ class HTTP_Download
     {
         return (
             (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&
-            $this->lastModified === $_SERVER['HTTP_IF_MODIFIED_SINCE']) ||
+            $this->lastModified === array_shift(explode(';', 
+                $_SERVER['HTTP_IF_MODIFIED_SINCE']))) ||
             (isset($_SERVER['HTTP_IF_NONE_MATCH']) &&
             $this->compareAsterisk('HTTP_IF_NONE_MATCH', $this->etag))
         );
@@ -859,7 +860,8 @@ class HTTP_Download
             return false;
         }
         if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE']) && 
-            $_SERVER['HTTP_IF_UNMODIFIED_SINCE'] !== $this->lastModified) {
+            array_shift(explode(';', $_SERVER['HTTP_IF_UNMODIFIED_SINCE'])) !== 
+                $this->lastModified) {
             return false;
         }
         return true;
