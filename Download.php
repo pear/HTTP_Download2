@@ -736,8 +736,10 @@ class HTTP_Download extends HTTP_Header
     * @param    string  $name       name the sent archive should have
     * @param    mixed   $files      files/directories
     * @param    string  $type       archive type
+    * @param    string  $add_path
+    * @param    string  $strip_path
     */
-    function sendArchive($name, $files, $type = HTTP_DOWNLOAD_TGZ)
+    function sendArchive($name, $files, $type = HTTP_DOWNLOAD_TGZ, $add_path = '', $strip_path = '')
     {
         require_once 'System.php';
         
@@ -769,7 +771,7 @@ class HTTP_Download extends HTTP_Header
                 );
         }
         
-        if (!$e = $arc->create($files)) {
+        if (!$e = $arc->createModify($files, $add_path, $strip_path)) {
             return PEAR::raiseError('Archive creation failed.');
         }
         if (PEAR::isError($e)) {
