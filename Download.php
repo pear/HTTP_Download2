@@ -561,14 +561,13 @@ class HTTP_Download
             }
         }
 
-        if (true !== $e = $this->sendChunks($chunks)) {
+        if (PEAR::isError($e = $this->sendChunks($chunks))) {
             ob_end_clean();
             $this->HTTP->sendStatusCode(416);
             return $e;
         }
         
-        $this->sendHeaders();
-        
+        ob_end_flush();
         return true;
     }    
 
@@ -728,9 +727,9 @@ class HTTP_Download
         $cType = $this->headers['Content-Type'];
         $this->headers['Content-Type'] =
             'multipart/byteranges; boundary=' . $bound;
-
+        $this->sendHeaders();
         foreach ($chunks as $chunk){
-            if (true !== $e = $this->sendChunk($chunk, $cType, $bound)) {
+            if (PEAR::isError($e = $this->sendChunk($chunk, $cType, $bound))) {
                 return $e;
             }
         }
@@ -759,24 +758,31 @@ class HTTP_Download
             );
         }
         
-        $range  = $offset . '-' . $lastbyte . '/' . $this->size;
+        $range = $offset . '-' . $lastbyte . '/' . $this->size;
         
         if (isset($cType, $bound)) {
             echo    "\n--$bound\n",
                     "Content-Type: $cType\n",
                     "Content-Range: $range\n\n";
-        } elseif ($this->isRangeRequest()) {
-            $this->headers['Content-Range'] = $range;
+        } else {
+            if ($this->isRangeRequest()) {
+                $this->headers['Content-Range'] = $range;
+            }
+            $this->sendHeaders();
         }
 
         if ($this->data) {
             echo substr($this->data, $offset, $length);
         } else {
-            if (!$this->handle) {
+            if (!is_resource($this->handle)) {
                 $this->handle = fopen($this->file, 'rb');
             }
             fseek($this->handle, $offset);
-            echo fread($this->handle, $length);
+            // only read 2M at once
+            do {
+                echo fread($this->handle, 2097152);
+                ob_flush();
+            } while (($length -= 2097152) > 0);
         }
         return true;
     }
