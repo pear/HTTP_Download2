@@ -89,11 +89,13 @@ class HTTP_Download_PgLOB
      * @static
      * @access  public
      * @return  resource
+     * @param   mixed   $conn
      * @param   int     $loid
      * @param   string  $mode
      */
-    function open($loid, $mode = 'rb')
+    function open($conn, $loid, $mode = 'rb')
     {
+        HTTP_Download_PgLOB::setConnection($conn);
         return fopen('pglob:///'. $loid, $mode);
     }
     
@@ -103,11 +105,12 @@ class HTTP_Download_PgLOB
      */
     var $ID = 0;
     var $size = 0;
+    var $conn = null;
     var $handle = null;
     
     function stream_open($path, $mode)
     {
-        if (!$conn = HTTP_Download_PgLOB::getConnection()) {
+        if (!$this->conn = HTTP_Download_PgLOB::getConnection()) {
             return false;
         }
         if (!preg_match('/(\d+)/', $path, $matches)) {
@@ -115,8 +118,8 @@ class HTTP_Download_PgLOB
         }
         $this->ID = $matches[1];
         
-        pg_query($conn, 'BEGIN');
-        $this->handle = pg_lo_open($conn, $this->ID, $mode);
+        pg_query($this->conn, 'BEGIN');
+        $this->handle = pg_lo_open($this->conn, $this->ID, $mode);
         pg_lo_seek($this->handle, 0, PGSQL_SEEK_END);
         $this->size = (int) pg_lo_tell($this->handle);
         pg_lo_seek($this->handle, 0, PGSQL_SEEK_SET);
@@ -160,8 +163,7 @@ class HTTP_Download_PgLOB
     
     function stream_close()
     {
-        return pg_lo_close($this->handle) &&
-            pg_query(HTTP_Download_PgLOB::getConnection(), 'COMMIT');
+        return pg_lo_close($this->handle) && pg_query($this->conn, 'COMMIT');
     }
     /**#@-*/
 }
