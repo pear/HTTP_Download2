@@ -793,8 +793,6 @@ class HTTP_Download
                 $fst = is_resource($this->handle) ? 
                     fstat($this->handle) : stat($this->file);
                 $md5 = md5($fst['mtime'] .'='. $fst['ino'] .'='. $fst['size']);
-            } else {
-                return 'W/"'. time() .'"';
             }
             $this->etag = '"' . $md5 . '-' . crc32($md5) . '"';
         }
