@@ -8,7 +8,7 @@
 // | to obtain it through the world-wide-web, please send a note to       |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 2003-2004 Michael Wallner <mike@iworks.at>             |
+// | Copyright (c) 2003-2005 Michael Wallner <mike@iworks.at>             |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -168,7 +168,6 @@ class HTTP_Download
         'Pragma'        => 'cache',
         'Cache-Control' => 'public, must-revalidate, max-age=0',
         'Accept-Ranges' => 'bytes',
-        'Connection'    => 'close',
         'X-Sent-By'     => 'PEAR::HTTP::Download'
     );
  
@@ -200,7 +199,7 @@ class HTTP_Download
      * Throttle Delay
      * 
      * @access  protected
-     * @var     int
+     * @var     float
      */
     var $throttleDelay = 0;
     // }}}
@@ -227,6 +226,7 @@ class HTTP_Download
      *                  o 'contentdisposition'  => content disposition
      *                  o 'buffersize'          => amount of bytes to buffer
      *                  o 'throttledelay'       => amount of secs to sleep
+     *                  o 'cachecontrol'        => public/private
      * 
      * <br />
      * 'Content-Disposition' is not HTTP compliant, but most browsers 
@@ -403,6 +403,30 @@ class HTTP_Download
     }
     
     /**
+     * Whether to allow proxies to cache
+     * 
+     * If set to 'private' proxies shouldn't cache the response.
+     * This setting defaults to 'public' and affects only cached responses.
+     * 
+     * @access  public
+     * @return  bool
+     * @param   string  $cache  private or public
+     */
+    function setCacheControl($cache = 'public')
+    {
+        switch ($cache = strToLower($cache))
+        {
+            case 'private':
+            case 'public':
+                $this->headers['Cache-Control'] = 
+                    $cache .', must-revalidate, max-age=0';
+                return true;
+            break;
+        }
+        return false;
+    }
+    
+    /**
      * Set ETag
      * 
      * Sets a user-defined ETag for cache-validation.  The ETag is usually
@@ -465,12 +489,12 @@ class HTTP_Download
      * 
      * @access  public
      * @return  void
-     * @param   int     $seconds    Amount of seconds to sleep after each 
+     * @param   float   $seconds    Amount of seconds to sleep after each 
      *                              chunk that has been sent.
      */
     function setThrottleDelay($seconds = 0)
     {
-        $this->throttleDelay = abs((int) $seconds);
+        $this->throttleDelay = abs($seconds) * 1000;
     }
     
     /**
@@ -703,7 +727,8 @@ class HTTP_Download
      *  );
      * </code>
      *
-     * @see     Archive_Tar::createModify()
+     * @see         Archive_Tar::createModify()
+     * @deprecated  use HTTP_Download_Archive::send()
      * @static
      * @access  public
      * @return  mixed   Returns true on success or PEAR_Error on failure.
@@ -719,63 +744,9 @@ class HTTP_Download
                             $add_path   = '', 
                             $strip_path = '')
     {
-        require_once 'System.php';
-        
-        $tmp = System::mktemp();
-        
-        switch ($type = strToUpper($type))
-        {
-            case HTTP_DOWNLOAD_TAR:
-                include_once 'Archive/Tar.php';
-                $arc = &new Archive_Tar($tmp);
-                $content_type = 'x-tar';
-            break;
-
-            case HTTP_DOWNLOAD_TGZ:
-                include_once 'Archive/Tar.php';
-                $arc = &new Archive_Tar($tmp, 'gz');
-                $content_type = 'x-gzip';
-            break;
-
-            case HTTP_DOWNLOAD_BZ2:
-                include_once 'Archive/Tar.php';
-                $arc = &new Archive_Tar($tmp, 'bz2');
-                $content_type = 'x-bzip2';
-            break;
-
-            case HTTP_DOWNLOAD_ZIP:
-                include_once 'Archive/Zip.php';
-                $arc = &new Archive_Zip($tmp);
-                $content_type = 'x-zip';
-            break;
-            
-            default:
-                return PEAR::raiseError(
-                    'Archive type not supported: ' . $type,
-                    HTTP_DOWNLOAD_E_INVALID_ARCHIVE_TYPE
-                );
-        }
-        
-        if ($type == HTTP_DOWNLOAD_ZIP) {
-            $options = array(   'add_path' => $add_path, 
-                                'remove_path' => $strip_path);
-            if (!$arc->create($files, $options)) {
-                return PEAR::raiseError('Archive creation failed.');
-            }
-        } else {
-            if (!$e = $arc->createModify($files, $add_path, $strip_path)) {
-                return PEAR::raiseError('Archive creation failed.');
-            }
-            if (PEAR::isError($e)) {
-                return $e;
-            }
-        }
-        unset($arc);
-        
-        $dl = &new HTTP_Download(array('file' => $tmp));
-        $dl->setContentType('application/' . $content_type);
-        $dl->setContentDisposition(HTTP_DOWNLOAD_ATTACHMENT, $name);
-        return $dl->send();
+        require_once 'HTTP/Download/Archive.php';
+        return HTTP_Download_Archive::send($name, $files, $type, 
+            $add_path, $strip_path);
     }
     // }}}
     
@@ -865,9 +836,7 @@ class HTTP_Download
         if ($this->data) {
             while (($length -= $this->bufferSize) > 0) {
                 $this->flush(substr($this->data, $offset, $this->bufferSize));
-                if ($this->throttleDelay) {
-                    sleep($this->throttleDelay);
-                }
+                $this->sleep();
                 $offset += $this->bufferSize;
             }
             if ($length) {
@@ -880,9 +849,7 @@ class HTTP_Download
             fseek($this->handle, $offset);
             while (($length -= $this->bufferSize) > 0) {
                 $this->flush(fread($this->handle, $this->bufferSize));
-                if ($this->throttleDelay) {
-                    sleep($this->throttleDelay);
-                }
+                $this->sleep();
             }
             if ($length) {
                 $this->flush(fread($this->handle, $this->bufferSize + $length));
@@ -1030,6 +997,20 @@ class HTTP_Download
         flush();
     }
     
+    /**
+     * Sleep
+     * 
+     * @access  protected
+     * @return  void
+     */
+    function sleep()
+    {
+        if (OS_WINDOWS) {
+            com_message_pump($this->throttleDelay);
+        } else {
+            usleep($this->throttleDelay);
+        }
+    }
     // }}}
 }
 ?>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.34 $ -->
+<!-- $Revision: 1.35 $ -->
 <!DOCTYPE package SYSTEM "http://pear.php.net/dtd/package-1.1">
 <package version="1.0">
  <name>HTTP_Download</name>
@@ -27,13 +27,18 @@ It features:
  </maintainers>
  <release>
   <license>PHP</license>
-  <version>1.0.0RC5</version>
+  <version>1.0.0RC6</version>
   <state>beta</state>
-  <date>2004-01-24</date>
+  <date>2004-02-00</date>
   <notes>
 <![CDATA[
 * Fixed Bug #3247 - set_time_limit() warning in safe_mode
 * Fixed Bug #3263 - Acrobat hangs on multiple ranges
+* Throttle delay may now be supplied as float (enables delays in msecs)
+* Removed "Connection: close" header
+* Cache-Control is now configurable (private/public)
+* Moved (seldom used) code of sendArchive() into its own class
+  HTTP_Download_Archive (method sendArchive() still available for BC)
 ]]>
   </notes>
   <filelist>
@@ -41,6 +46,7 @@ It features:
     <file role="php">Download.php</file>
     <dir name="Download">
      <file role="php">PgLOB.php</file>
+     <file role="php">Archive.php</file>
     </dir>
    </dir>
    <file role="test" install-as="send.php">tests/send.php</file>
