@@ -812,7 +812,7 @@ class HTTP_Download
             (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&
             $this->lastModified === $_SERVER['HTTP_IF_MODIFIED_SINCE']) ||
             (isset($_SERVER['HTTP_IF_NONE_MATCH']) &&
-            $this->compareAsterisk('HTTP_IF_NONE_MATCH', $this->etad))
+            $this->compareAsterisk('HTTP_IF_NONE_MATCH', $this->etag))
         );
     }
     
