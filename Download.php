@@ -789,10 +789,12 @@ class HTTP_Download
         if (!$this->etag) {
             if ($this->data) {
                 $md5 = md5($this->data);
-            } elseif (is_resource($this->handle)) {
-                $md5 = md5(serialize(fstat($this->handle)));
             } else {
-                $md5 = md5(serialize(stat($this->file)));
+                $fst = is_resource($this->handle) ? 
+                    fstat($this->handle) : stat($this->file);
+                $md5 = md5($fst['mtime'] .'='. $fst['ino'] .'='. $fst['size']);
+            } else {
+                return 'W/"'. time() .'"';
             }
             $this->etag = '"' . $md5 . '-' . crc32($md5) . '"';
         }
