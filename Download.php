@@ -271,6 +271,8 @@ class HTTP_Download extends HTTP_Header
     /**
     * Set data for download
     *
+    * Set <var>$data</var> to null if you want to unset this.
+    * 
     * @access   public
     * @return   void
     * @param    $data   raw data to send
@@ -285,7 +287,7 @@ class HTTP_Download extends HTTP_Header
     * Set resource for download
     *
     * The resource handle supplied will be closed after sending the download.
-    * 
+    * Set <var>$handle</var> to null if you want to unset the resource handle.
     * Returns a PEAR_Error if <var>$handle</var> is no valid resource.
     * 
     * @throws   PEAR_Error
@@ -293,7 +295,7 @@ class HTTP_Download extends HTTP_Header
     * @return   mixed   true on success or PEAR_Error
     * @param    int     $handle     resource handle
     */
-    function setResource($handle = null)
+    function setResource(&$handle)
     {
         // Check if $handle is a valid resource
         if (!is_resource($handle)) {
@@ -306,7 +308,7 @@ class HTTP_Download extends HTTP_Header
                 $this->_size    = 0;
             }
         } else {
-            $this->_handle  = $handle;
+            $this->_handle  = &$handle;
             $stats          = fstat($handle);
             $this->_size    = $stats['size'];
         }
@@ -325,7 +327,7 @@ class HTTP_Download extends HTTP_Header
     */
     function setGzip($gzip = false)
     {
-        if ($gzip && !extension_loaded('zlib') && !PEAR::loadExtension('zlib')) {
+        if ($gzip && !extension_loaded('zlib') && !PEAR::loadExtension('zlib')){
             return PEAR::raiseError('Compression (ext/zlib) not available.');
         }
         $this->_gzip = (bool) $gzip;
@@ -461,7 +463,7 @@ class HTTP_Download extends HTTP_Header
                 if ($this->_handle) {
                     rewind($this->_handle);
                     fpassthru($this->_handle);
-                    @fclose($this->_handle);
+                    fclose($this->_handle);
                 } else {
                     readfile($this->_file);
                 }
