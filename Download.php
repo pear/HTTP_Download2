@@ -168,7 +168,8 @@ class HTTP_Download
         'Pragma'        => 'cache',
         'Cache-Control' => 'public',
         'Accept-Ranges' => 'bytes',
-        'Connection'    => 'close'
+        'Connection'    => 'close',
+        'X-Sent-By'     => 'PEAR::HTTP::Download'
     );
  
     /**
@@ -248,7 +249,7 @@ class HTTP_Download
      */
     function setParams($params)
     {
-        foreach($params as $param => $value){
+        foreach((array) $params as $param => $value){
             if (!method_exists($this, 'set' . $param)) {
                 return PEAR::raiseError(
                     "Method 'set$param' doesn't exist.",
