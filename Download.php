@@ -959,6 +959,11 @@ class HTTP_Download
             !$this->compareAsterisk('HTTP_IF_MATCH', $this->etag)) {
             return false;
         }
+        if (isset($_SERVER['HTTP_IF_RANGE']) &&
+                  $_SERVER['HTTP_IF_RANGE'] !== $this->etag &&
+                  $_SERVER['HTTP_IF_RANGE'] !== $this->lastModified) {
+            return false;
+        }
         if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE']) && 
             array_shift(explode(';', $_SERVER['HTTP_IF_UNMODIFIED_SINCE'])) !== 
                 $this->lastModified) {
