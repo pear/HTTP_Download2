@@ -29,19 +29,37 @@ require_once 'PEAR.php';
 /**
 * Requires HTTP_Header
 */
-require_once('HTTP/Header.php');
+require_once 'HTTP/Header.php';
 
+/**#@+ Use with HTTP_Download::setContentDisposition() **/
 /**
-* To set with HTTP_Download::setContentDisposition():
 * Send data as attachment
 */
 define('HTTP_DOWNLOAD_ATTACHMENT', 'attachment');
-
 /**
-* To set with HTTP_Download::setContentDisposition():
 * Send data inline
 */
 define('HTTP_DOWNLOAD_INLINE', 'inline');
+/**#@-**/
+
+/**#@+ Use with HTTP_Download::sendArchive() **/
+/**
+* Send as uncompressed tar archive
+*/
+define('HTTP_DOWNLOAD_TAR', 'TAR');
+/**
+* Send as gzipped tar archive
+*/
+define('HTTP_DOWNLOAD_TGZ', 'TGZ');
+/**
+* Send as bzip2 compressed tar archive
+*/
+define('HTTP_DOWNLOAD_BZ2', 'BZ2');
+/**
+* Send as zip archive (not available yet)
+*/
+define('HTTP_DOWNLOAD_ZIP', 'ZIP');
+/**#@-**/
 
 /**#@+
 * Error constants
@@ -54,7 +72,8 @@ define('HTTP_DOWNLOAD_E_INVALID_PARAM',         -5);
 define('HTTP_DOWNLOAD_E_INVALID_RESOURCE',      -6);
 define('HTTP_DOWNLOAD_E_INVALID_REQUEST',       -7);
 define('HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE',  -8);
-/**#@+*/
+define('HTTP_DOWNLOAD_E_INVALID_ARCHIVE_TYPE',  -9);
+/**#@-**/
 
 /** 
 * Send HTTP Downloads.
@@ -68,11 +87,8 @@ define('HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE',  -8);
 * zlib.output_compression enabled in your php.ini, especially 
 * if you want to send already gzipped data!
 * 
-* <kbd><u>
 * Usage Example 1:
-* </u></kbd>
 * <code>
-* 
 * $params = array(
 *   'file'                  => '../hidden/download.tgz',
 *   'contenttype'           => 'application/x-gzip',
@@ -80,15 +96,11 @@ define('HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE',  -8);
 * );
 * 
 * $error = HTTP_Download::staticSend($params, false);
-* 
 * </code>
 * 
 * 
-* <kbd><u>
 * Usage Example 2:
-* </u></kbd>
 * <code>
-* 
 * $dl = &new HTTP_Download();
 * $dl->setFile('../hidden/download.tgz');
 * $dl->setContentDisposition(HTTP_DOWNLOAD_ATTACHMENT, 'latest.tgz');
@@ -97,22 +109,17 @@ define('HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE',  -8);
 * // else:
 * $dl->setContentType('application/x-gzip');
 * $dl->send();
-* 
 * </code>
 * 
 * 
-* <kbd><u>
 * Usage Example 3:
-* </u></kbd>
 * <code>
-* 
 * $dl = &new HTTP_Download();
 * $dl->setData($blob_from_db);
 * $dl->setLastModified($unix_timestamp);
 * $dl->setContentType('application/x-gzip');
 * $dl->setContentDisposition(HTTP_DOWNLOAD_ATTACHMENT, 'latest.tgz');
 * $dl->send();
-* 
 * </code>
 * 
 * @author   Michael Wallner <mike@php.net>
@@ -121,7 +128,6 @@ define('HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE',  -8);
 */
 class HTTP_Download extends HTTP_Header
 {
-
     /**
     * Path to file for download
     *
@@ -719,6 +725,62 @@ class HTTP_Download extends HTTP_Header
             }
         }
         return $d->send();
+    }
+    
+    /**
+    * Send a bunch of files or directories as an archive
+    *
+    * @static
+    * @access   public
+    * @return   mixed   Returns true on success or PEAR_Error on failure
+    * @param    string  $name       name the sent archive should have
+    * @param    mixed   $files      files/directories
+    * @param    string  $type       archive type
+    */
+    function sendArchive($name, $files, $type = HTTP_DOWNLOAD_TGZ)
+    {
+        require_once 'System.php';
+        
+        $tmp = System::mktemp();
+        
+        switch (strToUpper($type)) {
+            case HTTP_DOWNLOAD_TAR:
+                include_once 'Archive/Tar.php';
+                $arc = &new Archive_Tar($tmp);
+                $content_type = 'x-tar';
+                break;
+
+            case HTTP_DOWNLOAD_TGZ:
+                include_once 'Archive/Tar.php';
+                $arc = &new Archive_Tar($tmp, 'gz');
+                $content_type = 'x-gzip';
+                break;
+
+            case HTTP_DOWNLOAD_BZ2:
+                include_once 'Archive/Tar.php';
+                $arc = &new Archive_Tar($tmp, 'bz2');
+                $content_type = 'x-bzip2';
+                break;
+
+            default:
+                return PEAR::raiseError(
+                    'Archive type not supported: ' . $type,
+                    HTTP_DOWNLOAD_E_INVALID_ARCHIVE_TYPE
+                );
+        }
+        
+        if (!$e = $arc->create($files)) {
+            return PEAR::raiseError('Archive creation failed.');
+        }
+        if (PEAR::isError($e)) {
+            return $e;
+        }
+        unset($arc);
+        
+        $dl = &new HTTP_Download(array('file' => $tmp));
+        $dl->setContentType('application/' . $content_type);
+        $dl->setContentDisposition(HTTP_DOWNLOAD_ATTACHMENT, $name);
+        return $dl->send();
     }
 }
 ?>
