@@ -425,16 +425,16 @@ class HTTP_Download
      * 
      * @access  public
      * @return  mixed   Returns true on success or PEAR_Error on failure.
-     * @param   int     $bufferSize Amount of bytes to use as buffer.
+     * @param   int     $bytes Amount of bytes to use as buffer.
      */
-    function setBufferSize($size = 2097152)
+    function setBufferSize($bytes = 2097152)
     {
-        if (0 >= (int) $size) {
+        if (0 >= (int) $bytes) {
             return PEAR::raiseError(
-                'Buffer size must be greater than 0 bytes ('. $size .' given)',
+                'Buffer size must be greater than 0 bytes ('. $bytes .' given)',
                 HTTP_DOWNLOAD_E_INVALID_PARAM);
         }
-        $this->bufferSize = (int) $size;
+        $this->bufferSize = (int) $bytes;
         return true;
     }
     
@@ -459,12 +459,12 @@ class HTTP_Download
      * 
      * @access  public
      * @return  void
-     * @param   int     $sec    Amount of seconds to sleep after each 
-     *                          chunk that has been sent.
+     * @param   int     $seconds    Amount of seconds to sleep after each 
+     *                              chunk that has been sent.
      */
-    function setThrottleDelay($sec = 0)
+    function setThrottleDelay($seconds = 0)
     {
-        $this->throttleDelay = abs((int) $sec);
+        $this->throttleDelay = abs((int) $seconds);
     }
     
     /**
