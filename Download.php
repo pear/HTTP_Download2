@@ -262,8 +262,9 @@ class HTTP_Download
     // {{{ public methods
     /**
     * Set parameters
+    * 
+    * Set supplied parameters through its accessor methods.
     *
-    * @throws   PEAR_Error
     * @access   public
     * @return   mixed   true on success or PEAR_Error
     * @param    array   $params     associative array of parameters
@@ -301,9 +302,12 @@ class HTTP_Download
     /**
     * Set path to file for download
     *
-    * @throws   PEAR_Error
+    * The Last-Modified header will be set to files filemtime(), actually.
+    * Returns PEAR_Error (HTTP_DOWNLOAD_E_INVALID_FILE) if file doesn't exist.
+    * Sends HTTP 404 Status if $send_404 is set to true.
+    * 
     * @access   public
-    * @return   mixed   true on success or PEAR_Error
+    * @return   mixed   Returns true on success or PEAR_Error on failure.
     * @param    string  $file       path to file for download
     * @param    bool    $send_404   whether to send HTTP/404 if
     *                               the file wasn't found
@@ -329,7 +333,7 @@ class HTTP_Download
     /**
     * Set data for download
     *
-    * Set <var>$data</var> to null if you want to unset this.
+    * Set $data to null if you want to unset this.
     * 
     * @access   public
     * @return   void
@@ -345,12 +349,11 @@ class HTTP_Download
     * Set resource for download
     *
     * The resource handle supplied will be closed after sending the download.
+    * Returns a PEAR_Error (HTTP_DOWNLOAD_E_INVALID_RESOURCE) if $handle 
+    * is no valid resource. Set $handle to null if you want to unset this.
     * 
-    * Returns a PEAR_Error if <var>$handle</var> is no valid resource.
-    * 
-    * @throws   PEAR_Error
     * @access   public
-    * @return   mixed   true on success or PEAR_Error
+    * @return   mixed   Returns true on success or PEAR_Error on failure.
     * @param    int     $handle     resource handle
     */
     function setResource($handle = null)
@@ -377,11 +380,11 @@ class HTTP_Download
     /**
     * Whether to gzip the download
     *
-    * Returns a PEAR_Error if ext/zlib is not available
+    * Returns a PEAR_Error (HTTP_DOWNLOAD_E_NO_EXT_ZLIB)
+    * if ext/zlib is not available/loadable.
     * 
-    * @throws   PEAR_Error
     * @access   public
-    * @return   mixed   true on success or PEAR_Error
+    * @return   mixed   Returns true on success or PEAR_Error on failure.
     * @param    bool    $gzip   whether to gzip the download
     */
     function setGzip($gzip = false)
@@ -451,11 +454,12 @@ class HTTP_Download
     /**
     * Set content type of file for download
     *
-    * Returns PEAR_Error if <var>$content_type</var> doesn't seem to be valid.
+    * Default content type of the download will be 'application/x-octetstream'.
+    * Returns PEAR_Error (HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE) if 
+    * $content_type doesn't seem to be valid.
     * 
-    * @throws   PEAR_Error
     * @access   public
-    * @return   mixed   true on success or PEAR_Error
+    * @return   mixed   Returns true on success or PEAR_Error on failure.
     * @param    string  $content_type   content type of file for download
     */
     function setContentType($content_type = 'application/x-octetstream')
@@ -477,18 +481,17 @@ class HTTP_Download
     * is setup correct! Otherwise it will result in a FATAL ERROR.
     * <b>So be WARNED!</b>
     *
-    * Returns PEAR_Error if ext/magic.mime is not installed,
-    * or content type couldn't be guessed.
+    * Returns PEAR_Error (HTTP_DOWNLOAD_E_NO_EXT_MMAGIC) if ext/magic.mime 
+    * is not installed, or not properly configured.
     * 
-    * @throws   PEAR_Error
     * @access   public
-    * @return   mixed   true on success or PEAR_Error
+    * @return   mixed   Returns true on success or PEAR_Error on failure.
     */
     function guessContentType()
     {
         if (!function_exists('mime_content_type')) {
             return PEAR::raiseError(
-                'This feature requires ext/magic.mime!',
+                'This feature requires ext/mime_magic!',
                 HTTP_DOWNLOAD_E_NO_EXT_MMAGIC
             );
         }
@@ -505,12 +508,11 @@ class HTTP_Download
     * Send
     *
     * Returns PEAR_Error if:
-    *   o HTTP headers were already sent
-    *   o HTTP Range was invalid
+    *   o HTTP headers were already sent (HTTP_DOWNLOAD_E_HEADERS_SENT)
+    *   o HTTP Range was invalid (HTTP_DOWNLOAD_E_INVALID_REQUEST)
     * 
     * @access   public
-    * @return   mixed   Returns true on success, false if cached or 
-    *                   <classname>PEAR_Error</clasname> on failure.
+    * @return   mixed   Returns true on success or PEAR_Error on failure.
     */
     function send()
     {
@@ -564,10 +566,9 @@ class HTTP_Download
     * @see      HTTP_Download::HTTP_Download()
     * @see      HTTP_Download::send()
     * 
-    * @throws   PEAR_Error
-    * @static   call this method statically
+    * @note     This method should be called statically.
     * @access   public
-    * @return   mixed   true on success or PEAR_Error
+    * @return   mixed   Returns true on success or PEAR_Error on failure.
     * @param    array   $params     associative array of parameters
     * @param    bool    $guess      whether HTTP_Download::guessContentType()
     *                               should be called
@@ -590,15 +591,28 @@ class HTTP_Download
     
     /**
     * Send a bunch of files or directories as an archive
+    * 
+    * Example:
+    * <code>
+    *   require_once 'HTTP/Download.php';
+    *   HTTP_Download::sendArchive(
+    *       'myArchive.tgz',
+    *       '/var/ftp/pub/mike',
+    *       HTTP_DOWNLOAD_BZ2,
+    *       '',
+    *       '/var/ftp/pub'
+    *   );
+    * </code>
     *
-    * @static
+    * @see      Archive_Tar::createModify()
+    * @note     This method should be called statically.
     * @access   public
-    * @return   mixed   Returns true on success or PEAR_Error on failure
+    * @return   mixed   Returns true on success or PEAR_Error on failure.
     * @param    string  $name       name the sent archive should have
     * @param    mixed   $files      files/directories
     * @param    string  $type       archive type
-    * @param    string  $add_path
-    * @param    string  $strip_path
+    * @param    string  $add_path   path that should be prepended to the files
+    * @param    string  $strip_path path that should be stripped from the files
     */
     function sendArchive($name, $files, $type = HTTP_DOWNLOAD_TGZ, $add_path = '', $strip_path = '')
     {
