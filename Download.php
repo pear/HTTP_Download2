@@ -585,6 +585,10 @@ class HTTP_Download extends HTTP_Header
                         $begin  = $bytes[1];
                         $end    = $this->_size - 1;
                         $length = $this->_size - $begin;
+                    } elseif ($bytes[2] < $bytes[1]) {
+                        $begin  = 0;
+                        $end    = $this->_size - 1;
+                        $length = $this->_size;
                     } else {
                         // OK - Range: bytes=5-9
                         $begin  = $bytes[1];
