@@ -169,6 +169,14 @@ class HTTP_Download
     var $gzip = false;
     
     /**
+    * Whether to allow caching of the download on the clients side
+    * 
+    * @access   protected
+    * @var      bool
+    */
+    var $cache = true;
+    
+    /**
     * Size of download
     *
     * @access   protected
@@ -400,6 +408,24 @@ class HTTP_Download
     }
 
     /**
+    * Whether to allow caching
+    * 
+    * If set to true (default) we'll send some headers that are commonly
+    * used for caching purposes like ETag, Cache-Control and Last-Modified.
+    * 
+    * If caching is disabled, we'll send the download no matter if it
+    * would actually be cached at the clients side.
+    *
+    * @access   public
+    * @return   void
+    * @param    bool    $cache  whether to allow caching
+    */
+    function setCache($cache = true)
+    {
+        $this->cache = (bool) $cache;
+    }
+    
+    /**
     * Set "Last-Modified"
     *
     * This is usually determined by filemtime($file) in HTTP_Download::setFile()
@@ -523,18 +549,24 @@ class HTTP_Download
             );
         }
 
-        $this->headers['ETag'] = $this->generateETag();
-        
         if (!isset($this->headers['Content-Disposition'])) {
             $this->setContentDisposition();
         }
         
-        if ($this->isCached()) {
-            $this->HTTP->sendStatusCode(304);
-            $this->sendHeaders();
-            return true;
+        if ($this->cache) {
+            $this->headers['ETag'] = $this->generateETag();
+            if ($this->isCached()) {
+                $this->HTTP->sendStatusCode(304);
+                $this->sendHeaders();
+                return true;
+            }
+        } else {
+            unset(
+                $this->headers['Last-Modified'],
+                $this->headers['Cache-Control']
+            );
         }
-
+        
         if ($this->gzip) {
             @ob_start('ob_gzhandler');
         } else {
@@ -566,7 +598,7 @@ class HTTP_Download
     * @see      HTTP_Download::HTTP_Download()
     * @see      HTTP_Download::send()
     * 
-    * @note     This method should be called statically.
+    * @static
     * @access   public
     * @return   mixed   Returns true on success or PEAR_Error on failure.
     * @param    array   $params     associative array of parameters
@@ -605,7 +637,7 @@ class HTTP_Download
     * </code>
     *
     * @see      Archive_Tar::createModify()
-    * @note     This method should be called statically.
+    * @static
     * @access   public
     * @return   mixed   Returns true on success or PEAR_Error on failure.
     * @param    string  $name       name the sent archive should have
@@ -691,20 +723,19 @@ class HTTP_Download
     {
         if (count($chunks) == 1) {
             return $this->sendChunk(array_shift($chunks));
-        } else {
-
-            $bound = uniqid('HTTP_DOWNLOAD-', true);
-            $cType = $this->headers['Content-Type'];
-            $this->headers['Content-Type'] =  'multipart/byteranges; ';
-            $this->headers['Content-Type'] .= 'boundary=' . $bound;
-
-            foreach ($chunks as $chunk){
-                if (true !== $e = $this->sendChunk($chunk, $cType, $bound)) {
-                    return $e;
-                }
-            }
-            echo "\n--$bound";
         }
+
+        $bound = uniqid('HTTP_DOWNLOAD-', true);
+        $cType = $this->headers['Content-Type'];
+        $this->headers['Content-Type'] =
+            'multipart/byteranges; boundary=' . $bound;
+
+        foreach ($chunks as $chunk){
+            if (true !== $e = $this->sendChunk($chunk, $cType, $bound)) {
+                return $e;
+            }
+        }
+        echo "\n--$bound";
         return true;
     }
     
