@@ -824,7 +824,7 @@ class HTTP_Download
                 return $e;
             }
         }
-        echo "\n--$bound";
+        #echo "\r\n--$bound--\r\n";
         return true;
     }
     
@@ -852,12 +852,12 @@ class HTTP_Download
         $range = $offset . '-' . $lastbyte . '/' . $this->size;
         
         if (isset($cType, $bound)) {
-            echo    "\n--$bound\n",
-                    "Content-Type: $cType\n",
-                    "Content-Range: $range\n\n";
+            echo    "\r\n--$bound\r\n",
+                    "Content-Type: $cType\r\n",
+                    "Content-Range: bytes $range\r\n\r\n";
         } else {
             if ($this->isRangeRequest()) {
-                $this->headers['Content-Range'] = $range;
+                $this->headers['Content-Range'] = 'bytes '. $range;
             }
             $this->sendHeaders();
         }
@@ -936,7 +936,7 @@ class HTTP_Download
      */
     function getRanges()
     {
-        return preg_match('/^bytes=((\d*-\d*,?)+)$/', 
+        return preg_match('/^bytes=((\d*-\d*,? ?)+)$/', 
             @$_SERVER['HTTP_RANGE'], $matches) ? $matches[1] : array();
     }
     
@@ -1025,7 +1025,7 @@ class HTTP_Download
      */
     function flush($data = '')
     {
-        print $data;
+        echo $data;
         ob_flush();
         flush();
     }
