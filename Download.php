@@ -64,7 +64,7 @@ define('HTTP_DOWNLOAD_BZ2', 'BZ2');
 /**#@+
 * Error constants
 */
-define('HTTP_DOWNLOAD_Eheaders_SENT',          -1);
+define('HTTP_DOWNLOAD_E_HEADERS_SENT',          -1);
 define('HTTP_DOWNLOAD_E_NO_EXT_ZLIB',           -2);
 define('HTTP_DOWNLOAD_E_NO_EXT_MMAGIC',         -3);
 define('HTTP_DOWNLOAD_E_INVALID_FILE',          -4);
@@ -499,7 +499,7 @@ class HTTP_Download
         if (headers_sent()) {
             return PEAR::raiseError(
                 'Headers already sent.',
-                HTTP_DOWNLOAD_Eheaders_SENT
+                HTTP_DOWNLOAD_E_HEADERS_SENT
             );
         }
 
