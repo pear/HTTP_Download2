@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.10 $ -->
+<!-- $Revision: 1.11 $ -->
 <package version="1.0">
   <name>HTTP_Download</name>
   <license>PHP</license>
   <summary>Send HTTP Downloads</summary>
   <description>
 Provides an easy interface to send hidden files or any arbitrary data to the client over HTTP. It features HTTP Caching, Compression and Ranges (partial downloads and resuming).
-
-NOTE:
-Don't use with PHP's on-the-fly output compression, because files may be sent corrupted.
   </description>
   <maintainers>
     <maintainer>
@@ -19,12 +16,13 @@ Don't use with PHP's on-the-fly output compression, because files may be sent co
     </maintainer>
   </maintainers>
   <release>
-    <version>0.5.1</version>
-    <date>2003-12-30</date>
+    <version>0.5.2</version>
+    <date>2004-02-24</date>
     <state>beta</state>
     <notes>
-* Send cache-control headers if download is cached (Andreas Korthaus)
-* Fixed a bug in the sanity check of HTTP Range headers (Maxim Matyukhin)
+* Fixed HTTP range support (not completely HTTP compliant)
+* Fixed bug where wrong 'Content-Length' header was sent if download gets gzipped
+* Suppress warning if sessions are used and download gets gzipped
     </notes>
     <filelist>
       <dir name="/" baseinstalldir="HTTP">
