@@ -117,11 +117,20 @@ class HTTP_Download_PgLOB
         }
         $this->ID = $matches[1];
         
-        pg_query($this->conn, 'BEGIN');
+        if (!pg_query($this->conn, 'BEGIN')) {
+            return false;
+        }
+        
         $this->handle = pg_lo_open($this->conn, $this->ID, $mode);
+        if (!is_resource($this->handle)) {
+            return false;
+        }
+        
+        // fetch size of lob
         pg_lo_seek($this->handle, 0, PGSQL_SEEK_END);
         $this->size = (int) pg_lo_tell($this->handle);
         pg_lo_seek($this->handle, 0, PGSQL_SEEK_SET);
+        
         return true;
     }
     
