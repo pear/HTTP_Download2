@@ -572,11 +572,12 @@ class HTTP_Download
     /**
      * Guess content type of file
      * 
-     * This only works if PHP is installed with ext/magic.mime AND php.ini
-     * is setup correct! Otherwise it will result in a FATAL ERROR.
-     * <b>So be WARNED!</b>
+     * First we try to use PEAR::MIME_Type, if installed, to detect the content 
+     * type, else we check if ext/mime_magic is loaded and properly configured.
      *
      * Returns PEAR_Error if:
+     *      o if PEAR::MIME_Type failed to detect a proper content type
+     *        (HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE)
      *      o ext/magic.mime is not installed, or not properly configured
      *        (HTTP_DOWNLOAD_E_NO_EXT_MMAGIC)
      *      o mime_content_type() couldn't guess content type or returned
@@ -588,6 +589,13 @@ class HTTP_Download
      */
     function guessContentType()
     {
+        if (class_exists('MIME_Type') || @include_once 'MIME/Type.php') {
+            if (PEAR::isError($mime_type = MIME_Type::autoDetect($this->file))) {
+                return PEAR::raiseError($mime_type->getMessage(),
+                    HTTP_DOWNLOAD_E_INVALID_CONTENT_TYPE);
+            }
+            return $this->setContentType($mime_type);
+        }
         if (!function_exists('mime_content_type')) {
             return PEAR::raiseError(
                 'This feature requires ext/mime_magic!',
