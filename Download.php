@@ -238,8 +238,8 @@ class HTTP_Download
      */
     function HTTP_Download($params = array())
     {
-        $this->setParams($params);
         $this->HTTP = &new HTTP_Header;
+        $this->setParams($params);
     }
     // }}}
     
