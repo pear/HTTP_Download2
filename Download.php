@@ -1008,7 +1008,7 @@ class HTTP_Download
         if (OS_WINDOWS) {
             com_message_pump($this->throttleDelay);
         } else {
-            usleep($this->throttleDelay);
+            usleep($this->throttleDelay * 1000);
         }
     }
     // }}}
