@@ -149,12 +149,12 @@ class HTTP_Download
     var $size = 0;
     
     /**
-     * Last modified (GMT)
+     * Last modified
      *
      * @access  protected
-     * @var     string
+     * @var     int
      */
-    var $lastModified = '';
+    var $lastModified = 0;
     
     /**
      * HTTP headers
@@ -510,8 +510,7 @@ class HTTP_Download
      */
     function setLastModified($last_modified)
     {
-        $this->lastModified             = HTTP::Date((int) $last_modified);
-        $this->headers['Last-Modified'] = (int) $last_modified;
+        $this->lastModified = $this->headers['Last-Modified'] = (int) $last_modified;
     }
     
     /**
@@ -726,7 +725,7 @@ class HTTP_Download
      *  HTTP_Download::sendArchive(
      *      'myArchive.tgz',
      *      '/var/ftp/pub/mike',
-     *      HTTP_DOWNLOAD_BZ2,
+     *      HTTP_DOWNLOAD_TGZ,
      *      '',
      *      '/var/ftp/pub'
      *  );
@@ -922,8 +921,8 @@ class HTTP_Download
     {
         return (
             (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&
-            $this->lastModified === array_shift(explode(';', 
-                $_SERVER['HTTP_IF_MODIFIED_SINCE']))) ||
+            $this->lastModified == strtotime(array_shift(explode(
+                ';', $_SERVER['HTTP_IF_MODIFIED_SINCE'])))) ||
             (isset($_SERVER['HTTP_IF_NONE_MATCH']) &&
             $this->compareAsterisk('HTTP_IF_NONE_MATCH', $this->etag))
         );
@@ -943,13 +942,20 @@ class HTTP_Download
         }
         if (isset($_SERVER['HTTP_IF_RANGE']) &&
                   $_SERVER['HTTP_IF_RANGE'] !== $this->etag &&
-                  $_SERVER['HTTP_IF_RANGE'] !== $this->lastModified) {
+                  strtotime($_SERVER['HTTP_IF_RANGE']) !== $this->lastModified) {
             return false;
         }
-        if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE']) && 
-            array_shift(explode(';', $_SERVER['HTTP_IF_UNMODIFIED_SINCE'])) !== 
-                $this->lastModified) {
-            return false;
+        if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE'])) {
+            $lm = array_shift(explode(';', $_SERVER['HTTP_IF_UNMODIFIED_SINCE']));
+            if (strtotime($lm) !== $this->lastModified) {
+                return false;
+            }
+        }
+        if (isset($_SERVER['HTTP_UNLESS_MODIFIED_SINCE'])) {
+            $lm = array_shift(explode(';', $_SERVER['HTTP_UNLESS_MODIFIED_SINCE']));
+            if (strtotime($lm) !== $this->lastModified) {
+                return false;
+            }
         }
         return true;
     }
