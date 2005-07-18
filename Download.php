@@ -410,15 +410,16 @@ class HTTP_Download
      * @access  public
      * @return  bool
      * @param   string  $cache  private or public
+     * @param   int     $maxage maximum age of the client cache entry
      */
-    function setCacheControl($cache = 'public')
+    function setCacheControl($cache = 'public', $maxage = 0)
     {
         switch ($cache = strToLower($cache))
         {
             case 'private':
             case 'public':
                 $this->headers['Cache-Control'] = 
-                    $cache .', must-revalidate, max-age=0';
+                    $cache .', must-revalidate, max-age='. $maxage;
                 return true;
             break;
         }
