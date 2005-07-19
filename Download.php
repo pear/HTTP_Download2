@@ -271,7 +271,7 @@ class HTTP_Download
                 case 'contentdisposition':
                 case 'cachecontrol':
                     $e = call_user_func_array(
-                        array(&$this, 'set'. $param), (array) $value);
+                        array(&$this, $method), (array) $value);
                 break;
                 
                 default:
