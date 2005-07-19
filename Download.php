@@ -267,6 +267,7 @@ class HTTP_Download
     {
         foreach((array) $params as $param => $value){
             $method = 'set'. $param;
+            
             if (!method_exists($this, $method)) {
                 return PEAR::raiseError(
                     "Method '$method' doesn't exist.",
@@ -274,18 +275,7 @@ class HTTP_Download
                 );
             }
             
-            switch (strToLower($param))
-            {
-                case 'contentdisposition':
-                case 'cachecontrol':
-                    $e = call_user_func_array(
-                        array(&$this, $method), (array) $value);
-                break;
-                
-                default:
-                    $e = $this->$method($value);
-                break;
-            }
+            $e = call_user_func_array(array(&$this, $method), (array) $value);
             
             if (PEAR::isError($e)) {
                 return $e;
