@@ -225,7 +225,7 @@ class HTTP_Download
      *                  o 'contentdisposition'  => content disposition
      *                  o 'buffersize'          => amount of bytes to buffer
      *                  o 'throttledelay'       => amount of secs to sleep
-     *                  o 'cachecontrol'        => public/private
+     *                  o 'cachecontrol'        => cache privacy and validity
      * 
      * <br />
      * 'Content-Disposition' is not HTTP compliant, but most browsers 
@@ -258,24 +258,27 @@ class HTTP_Download
     function setParams($params)
     {
         foreach((array) $params as $param => $value){
-            if (!method_exists($this, 'set' . $param)) {
+            $method = 'set'. $param;
+            if (!method_exists($this, $method)) {
                 return PEAR::raiseError(
-                    "Method 'set$param' doesn't exist.",
+                    "Method '$method' doesn't exist.",
                     HTTP_DOWNLOAD_E_INVALID_PARAM
                 );
             }
-            if (strToLower($param) == 'contentdisposition') {
-                if (is_array($value)) {
-                    $disp   = $value[0];
-                    $fname  = @$value[1];
-                } else {
-                    $disp   = $value;
-                    $fname  = null;
-                }
-                $e = $this->setContentDisposition($disp, $fname);
-            } else {
-                $e = $this->{'set' . $param}($value);
+            
+            switch (strToLower($param))
+            {
+                case 'contentdisposition':
+                case 'cachecontrol':
+                    $e = call_user_func_array(
+                        array(&$this, 'set'. $param), (array) $value);
+                break;
+                
+                default:
+                    $e = $this->$method($value);
+                break;
             }
+            
             if (PEAR::isError($e)) {
                 return $e;
             }
