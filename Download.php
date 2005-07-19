@@ -420,7 +420,7 @@ class HTTP_Download
             case 'private':
             case 'public':
                 $this->headers['Cache-Control'] = 
-                    $cache .', must-revalidate, max-age='. $maxage;
+                    $cache .', must-revalidate, max-age='. abs($maxage);
                 return true;
             break;
         }
@@ -460,12 +460,12 @@ class HTTP_Download
      */
     function setBufferSize($bytes = 2097152)
     {
-        if (0 >= (int) $bytes) {
+        if (0 >= $bytes) {
             return PEAR::raiseError(
                 'Buffer size must be greater than 0 bytes ('. $bytes .' given)',
                 HTTP_DOWNLOAD_E_INVALID_PARAM);
         }
-        $this->bufferSize = (int) $bytes;
+        $this->bufferSize = abs($bytes);
         return true;
     }
     
