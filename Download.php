@@ -201,6 +201,14 @@ class HTTP_Download
      * @var     float
      */
     var $throttleDelay = 0;
+    
+    /**
+     * Sent Bytes
+     * 
+     * @access  public
+     * @var     int
+     */
+    var $sentBytes = 0;
     // }}}
     
     // {{{ constructor
@@ -669,6 +677,8 @@ class HTTP_Download
             ob_start();
         }
         
+        $this->sentBytes = 0;
+        
         if ($this->isRangeRequest()) {
             $this->HTTP->sendStatusCode(206);
             $chunks = $this->getChunks();
@@ -1010,7 +1020,10 @@ class HTTP_Download
      */
     function flush($data = '')
     {
-        echo $data;
+        if ($dlen = strlen($data)) {
+            $this->sentBytes += $dlen;
+            echo $data;
+        }
         ob_flush();
         flush();
     }

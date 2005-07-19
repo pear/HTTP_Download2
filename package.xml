@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.45 $ -->
+<!-- $Revision: 1.46 $ -->
 <!DOCTYPE package SYSTEM "http://pear.php.net/dtd/package-1.1">
 <package version="1.0">
  <name>HTTP_Download</name>
@@ -36,6 +36,7 @@ It features:
 RC3:
 ====
 * Added missing support to set max age for cache control through constructor and setParams()
++ Added public sentBytes property, containing the amount of bytes (body only) sent to the client
 
 RC2:
 ====
