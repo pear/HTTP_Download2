@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.44 $ -->
+<!-- $Revision: 1.45 $ -->
 <!DOCTYPE package SYSTEM "http://pear.php.net/dtd/package-1.1">
 <package version="1.0">
  <name>HTTP_Download</name>
@@ -28,16 +28,20 @@ It features:
  </maintainers>
  <release>
   <license>PHP</license>
-  <version>1.1.0RC2</version>
+  <version>1.1.0RC3</version>
   <state>beta</state>
-  <date>2004-07-18</date>
+  <date>2004-07-00</date>
   <notes>
 <![CDATA[
+RC3:
+====
+* Added missing support to set max age for cache control through constructor and setParams()
+
 RC2:
 ====
 * Added missing support for proprietary Unless-Modified-Since header (IE)
-* Improved comparisons of last modification date
-* Implemeted modified Request #4754; possibility to define max-age cache control parameter
++ Improved comparisons of last modification date
++ Implemeted modified Request #4754; possibility to define max-age cache control parameter
 
 RC1:
 ====
@@ -67,8 +71,10 @@ RC1:
    <dep type="pkg" rel="has" optional="no">HTTP_Header</dep>
    <dep type="pkg" rel="has" optional="yes">Archive_Tar</dep>
    <dep type="pkg" rel="has" optional="yes">Archive_Zip</dep>
+   <dep type="pkg" rel="has" optional="yes">MIME_Type</dep>
    <dep type="ext" rel="has" optional="no">pcre</dep>
    <dep type="ext" rel="has" optional="yes">mime_magic</dep>
+   <dep type="ext" rel="has" optional="yes">pgsql</dep>
    <dep type="php" rel="ge" optional="yes" version="4.3.0" />
    <dep type="php" rel="ge" optional="no" version="4.2.0" />
   </deps>
