@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.48 $ -->
+<!-- $Revision: 1.49 $ -->
 <!DOCTYPE package SYSTEM "http://pear.php.net/dtd/package-1.1">
 <package version="1.0">
  <name>HTTP_Download</name>
@@ -27,12 +27,17 @@ It features:
   </maintainer>
  </maintainers>
  <release>
-  <license>PHP</license>
-  <version>1.1.0RC3</version>
-  <state>beta</state>
-  <date>2004-08-01</date>
+  <license>BSD, revised</license>
+  <version>1.1.0</version>
+  <state>stable</state>
+  <date>2004-01-00</date>
   <notes>
 <![CDATA[
+1.1.0-stable:
+=============
+* Fixed bug #5949: pass-by-reference error
+- Changed license to BSD
+
 RC3:
 ====
 * Added missing support to set 'max age' for cache control through constructor and setParams()
@@ -67,6 +72,7 @@ RC1:
    <file role="test" install-as="send.php">tests/send.php</file>
    <file role="test" install-as="testcase.php">tests/testcase.php</file>
    <file role="test" install-as="data.txt">tests/data.txt</file>
+   <file role="doc">LICENSE</file>
   </filelist>
   <deps>
    <dep type="pkg" rel="has" optional="no">PEAR</dep>
