@@ -784,7 +784,7 @@ class HTTP_Download
     function sendChunks($chunks)
     {
         if (count($chunks) == 1) {
-            return $this->sendChunk(array_shift($chunks));
+            return $this->sendChunk(current($chunks));
         }
 
         $bound = uniqid('HTTP_DOWNLOAD-', true);
@@ -944,13 +944,13 @@ class HTTP_Download
             return false;
         }
         if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE'])) {
-            $lm = array_shift(explode(';', $_SERVER['HTTP_IF_UNMODIFIED_SINCE']));
+            $lm = current($a = explode(';', $_SERVER['HTTP_IF_UNMODIFIED_SINCE']));
             if (strtotime($lm) !== $this->lastModified) {
                 return false;
             }
         }
         if (isset($_SERVER['HTTP_UNLESS_MODIFIED_SINCE'])) {
-            $lm = array_shift(explode(';', $_SERVER['HTTP_UNLESS_MODIFIED_SINCE']));
+            $lm = current($a = explode(';', $_SERVER['HTTP_UNLESS_MODIFIED_SINCE']));
             if (strtotime($lm) !== $this->lastModified) {
                 return false;
             }
