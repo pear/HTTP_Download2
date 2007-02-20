@@ -653,7 +653,9 @@ class HTTP_Download
             unset($this->headers['Last-Modified']);
         }
         
-        while (@ob_end_clean());
+        if (ob_get_level()) {
+        	while (@ob_end_clean());
+        }
         
         if ($this->gzip) {
             @ob_start('ob_gzhandler');
