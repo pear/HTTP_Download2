@@ -832,6 +832,7 @@ class HTTP_Download
                     "Content-Range: bytes $range\r\n\r\n";
         } else {
             if ($this->isRangeRequest()) {
+                $this->headers['Content-Length'] = $length;
                 $this->headers['Content-Range'] = 'bytes '. $range;
             }
             $this->sendHeaders();
