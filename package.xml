@@ -1,10 +1,12 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
-<!-- $Revision: 1.52 $ -->
-<!DOCTYPE package SYSTEM "http://pear.php.net/dtd/package-1.1">
-<package version="1.0">
+<?xml version="1.0" encoding="UTF-8"?>
+<package packagerversion="1.5.1" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+http://pear.php.net/dtd/tasks-1.0.xsd
+http://pear.php.net/dtd/package-2.0
+http://pear.php.net/dtd/package-2.0.xsd">
  <name>HTTP_Download</name>
+ <channel>pear.php.net</channel>
  <summary>Send HTTP Downloads</summary>
- <description>
+ <description><![CDATA[
 Provides an interface to easily send hidden files or any arbitrary data to 
 HTTP clients.  HTTP_Download can gain its data from variables, files or
 stream resources.
@@ -16,51 +18,91 @@ It features:
  - Ranges (partial downloads and resuming)
  - Delivery of on-the-fly generated archives through Archive_Tar and Archive_Zip
  - Sending of PgSQL LOBs without the need to read all data in prior to sending
- </description>
- <license>PHP</license>
- <maintainers>
-  <maintainer>
-   <user>mike</user>
-   <role>lead</role>
-   <name>Michael Wallner</name>
-   <email>mike@php.net</email>
-  </maintainer>
- </maintainers>
- <release>
-  <license>BSD, revised</license>
-  <version>1.1.2</version>
-  <state>stable</state>
-  <date>2005-12-00</date>
-  <notes>
-<![CDATA[
-* Fixed bug #9670 Notice: ob_end_clean(): failed to delete buffer
-* Fixed bug #10497 resuming downloads don't send Length
 ]]>
-  </notes>
+ </description>
+ <lead>
+  <name>Michael Wallner</name>
+  <user>mike</user>
+  <email>mike@php.net</email>
+  <active>yes</active>
+ </lead>
+ <date>2007-05-02</date>
+ <time>21:33:16</time>
+ <version>
+  <release>1.1.2</release>
+  <api>1.1.0</api>
+ </version>
+ <stability>
+  <release>stable</release>
+  <api>stable</api>
+ </stability>
+ <license>BSD, revised</license>
+ <notes><![CDATA[
+* Fixed bug #9670 Notice: ob_end_clean(): failed to delete buffer
+* Fixed bug #10497 resuming downloads don&apos;t send Length
+]]>  
+ </notes>
+ <contents>
+  <dir name="/">
+   <dir name="Download">
+    <file baseinstalldir="HTTP" name="Archive.php" role="php" />
+    <file baseinstalldir="HTTP" name="PgLOB.php" role="php" />
+   </dir> <!-- /Download -->
+   <dir name="tests">
+    <file baseinstalldir="HTTP" name="data.txt" role="test" />
+    <file baseinstalldir="HTTP" name="send.php" role="test" />
+    <file baseinstalldir="HTTP" name="testcase.php" role="test" />
+   </dir> <!-- /tests -->
+   <file baseinstalldir="HTTP" name="Download.php" role="php" />
+   <file baseinstalldir="HTTP" name="LICENSE" role="doc" />
+  </dir> <!-- / -->
+ </contents>
+ <dependencies>
+  <required>
+   <php>
+    <min>4.2.0</min>
+   </php>
+   <pearinstaller>
+    <min>1.4.0b1</min>
+   </pearinstaller>
+   <package>
+    <name>PEAR</name>
+    <channel>pear.php.net</channel>
+   </package>
+   <package>
+    <name>HTTP_Header</name>
+    <channel>pear.php.net</channel>
+   </package>
+   <extension>
+    <name>pcre</name>
+   </extension>
+  </required>
+  <optional>
+   <package>
+    <name>Archive_Tar</name>
+    <channel>pear.php.net</channel>
+   </package>
+   <package>
+    <name>Archive_Zip</name>
+    <channel>pear.php.net</channel>
+   </package>
+   <package>
+    <name>MIME_Type</name>
+    <channel>pear.php.net</channel>
+   </package>
+   <extension>
+    <name>mime_magic</name>
+   </extension>
+   <extension>
+    <name>pgsql</name>
+   </extension>
+  </optional>
+ </dependencies>
+ <phprelease>
   <filelist>
-   <dir name="/" baseinstalldir="HTTP">
-    <file role="php">Download.php</file>
-    <dir name="Download">
-     <file role="php">PgLOB.php</file>
-     <file role="php">Archive.php</file>
-    </dir>
-   </dir>
-   <file role="test" install-as="send.php">tests/send.php</file>
-   <file role="test" install-as="testcase.php">tests/testcase.php</file>
-   <file role="test" install-as="data.txt">tests/data.txt</file>
-   <file role="doc">LICENSE</file>
+   <install as="send.php" name="tests/send.php" />
+   <install as="testcase.php" name="tests/testcase.php" />
+   <install as="data.txt" name="tests/data.txt" />
   </filelist>
-  <deps>
-   <dep type="pkg" rel="has" optional="no">PEAR</dep>
-   <dep type="pkg" rel="has" optional="no">HTTP_Header</dep>
-   <dep type="pkg" rel="has" optional="yes">Archive_Tar</dep>
-   <dep type="pkg" rel="has" optional="yes">Archive_Zip</dep>
-   <dep type="pkg" rel="has" optional="yes">MIME_Type</dep>
-   <dep type="ext" rel="has" optional="no">pcre</dep>
-   <dep type="ext" rel="has" optional="yes">mime_magic</dep>
-   <dep type="ext" rel="has" optional="yes">pgsql</dep>
-   <dep type="php" rel="ge" optional="yes" version="4.3.0" />
-   <dep type="php" rel="ge" optional="no" version="4.2.0" />
-  </deps>
- </release>
+ </phprelease>
 </package>
