@@ -993,7 +993,9 @@ class HTTP_Download
         $this->HTTP->sendHeaders();
         /* NSAPI won't output anything if we did this */
         if (strncasecmp(PHP_SAPI, 'nsapi', 5)) {
-            ob_flush();
+            if (ob_get_level()) {
+                ob_flush();
+            }
             flush();
         }
     }
