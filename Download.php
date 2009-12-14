@@ -312,7 +312,7 @@ class HTTP_Download
         }
         $file = realpath($file);
         if (!is_file($file)) {
-            if ($send_404) {
+            if ($send_error) {
                 $this->HTTP->sendStatusCode(404);
             }
             return PEAR::raiseError(
@@ -376,7 +376,8 @@ class HTTP_Download
         if (is_resource($handle)) {
             $this->handle = $handle;
             $filestats    = fstat($handle);
-            $this->size   = $filestats['size'];
+            $this->size   = isset($filestats['size']) ? $filestats['size']
+                                                      : -1;
             return true;
         }
 
@@ -704,7 +705,7 @@ class HTTP_Download
         }
 
         if (ob_get_level()) {
-        	while (@ob_end_clean());
+            while (@ob_end_clean());
         }
 
         if ($this->gzip) {
@@ -715,22 +716,32 @@ class HTTP_Download
 
         $this->sentBytes = 0;
 
-        if ($this->isRangeRequest()) {
-            $this->HTTP->sendStatusCode(206);
-            $chunks = $this->getChunks();
+        // Known content length?
+        $end = ($this->size >= 0) ? max($this->size - 1, 0) : '*';
+
+        if ($end != '*' && $this->isRangeRequest()) {
+             $chunks = $this->getChunks();
+            if (empty($chunks)) {
+                $this->HTTP->sendStatusCode(200);
+                $chunks = array(array(0, $end));
+
+            } elseif (PEAR::isError($chunks)) {
+                ob_end_clean();
+                $this->HTTP->sendStatusCode(416);
+                return $chunks;
+
+            } else {
+                $this->HTTP->sendStatusCode(206);
+            }
         } else {
             $this->HTTP->sendStatusCode(200);
-            $chunks = array(array(0, $this->size));
-            if (!$this->gzip && count(ob_list_handlers()) < 2) {
+            $chunks = array(array(0, $end));
+            if (!$this->gzip && count(ob_list_handlers()) < 2 && $end != '*') {
                 $this->headers['Content-Length'] = $this->size;
             }
         }
 
-        if (PEAR::isError($e = $this->sendChunks($chunks))) {
-            ob_end_clean();
-            $this->HTTP->sendStatusCode(416);
-            return $e;
-        }
+        $this->sendChunks($chunks);
 
         ob_end_flush();
         flush();
@@ -817,9 +828,12 @@ class HTTP_Download
             if ($this->data) {
                 $md5 = md5($this->data);
             } else {
-                $fst = is_resource($this->handle) ?
-                    fstat($this->handle) : stat($this->file);
-                $md5 = md5($fst['mtime'] .'='. $fst['ino'] .'='. $fst['size']);
+                $mtime = time();
+                $ino   = 0;
+                $size  = mt_rand();
+                extract(is_resource($this->handle) ? fstat($this->handle)
+                                                   : stat($this->file));
+                $md5 = md5($mtime .'='. $ino .'='. $size);
             }
             $this->etag = '"' . $md5 . '-' . crc32($md5) . '"';
         }
@@ -845,9 +859,7 @@ class HTTP_Download
             'multipart/byteranges; boundary=' . $bound;
         $this->sendHeaders();
         foreach ($chunks as $chunk){
-            if (PEAR::isError($e = $this->sendChunk($chunk, $cType, $bound))) {
-                return $e;
-            }
+            $this->sendChunk($chunk, $cType, $bound);
         }
         #echo "\r\n--$bound--\r\n";
         return true;
@@ -867,21 +879,15 @@ class HTTP_Download
         list($offset, $lastbyte) = $chunk;
         $length = ($lastbyte - $offset) + 1;
 
-        if ($length < 1) {
-            return PEAR::raiseError(
-                "Error processing range request: $offset-$lastbyte/$length",
-                HTTP_DOWNLOAD_E_INVALID_REQUEST
-            );
-        }
-
-        $range = $offset . '-' . $lastbyte . '/' . $this->size;
+        $range = $offset . '-' . $lastbyte . '/'
+                 . (($this->size >= 0) ? $this->size : '*');
 
         if (isset($cType, $bound)) {
             echo    "\r\n--$bound\r\n",
                     "Content-Type: $cType\r\n",
                     "Content-Range: bytes $range\r\n\r\n";
         } else {
-            if ($this->isRangeRequest()) {
+            if ($lastbyte != '*' && $this->isRangeRequest()) {
                 $this->headers['Content-Length'] = $length;
                 $this->headers['Content-Range'] = 'bytes '. $range;
             }
@@ -902,38 +908,173 @@ class HTTP_Download
                 $this->handle = fopen($this->file, 'rb');
             }
             fseek($this->handle, $offset);
-            while (($length -= $this->bufferSize) > 0) {
-                $this->flush(fread($this->handle, $this->bufferSize));
-                $this->throttleDelay and $this->sleep();
-            }
-            if ($length) {
-                $this->flush(fread($this->handle, $this->bufferSize + $length));
-            }
-        }
-        return true;
+            if ($lastbyte == '*') {
+                while (!feof($this->handle)) {
+                    $this->flush(fread($this->handle, $this->bufferSize));
+                    $this->throttleDelay and $this->sleep();
+                }
+            } else {
+                while (($length -= $this->bufferSize) > 0) {
+                    $this->flush(fread($this->handle, $this->bufferSize));
+                    $this->throttleDelay and $this->sleep();
+                }
+                if ($length) {
+                    $this->flush(fread($this->handle, $this->bufferSize + $length));
+                }
+             }
+         }
+         return true;
     }
 
     /**
      * Get chunks to send
      *
      * @access  protected
-     * @return  array
+     * @return  array Chunk list or PEAR_Error on invalid range request
+     * @link    http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35
      */
     function getChunks()
     {
+        $end = ($this->size >= 0) ? max($this->size - 1, 0) : '*';
+
+        // Trying to handle ranges on content with unknown length is too
+        // big of a mess (impossible to determine if a range is valid)
+        if ($end == '*') {
+            return array();
+        }
+
+        $ranges = $this->getRanges();
+        if (empty($ranges)) {
+            return array();
+        }
+
         $parts = array();
-        foreach (explode(',', $this->getRanges()) as $chunk){
-            list($o, $e) = explode('-', $chunk);
-            if ($e >= $this->size || (empty($e) && $e !== 0 && $e !== '0')) {
-                $e = $this->size - 1;
+        $satisfiable = false;
+        foreach (explode(',', $ranges) as $chunk){
+            list($o, $e) = explode('-', trim($chunk));
+
+            // If the last-byte-pos value is present, it MUST be greater than
+            // or equal to the first-byte-pos in that byte-range-spec, or the
+            // byte- range-spec is syntactically invalid. The recipient of a
+            // byte-range- set that includes one or more syntactically invalid
+            // byte-range-spec values MUST ignore the header field that
+            // includes that byte-range- set.
+            if ($e !== '' && $o !== '' && $e < $o) {
+                return array();
             }
-            if (empty($o) && $o !== 0 && $o !== '0') {
-                $o = $this->size - $e;
-                $e = $this->size - 1;
+
+            // If the last-byte-pos value is absent, or if the value is
+            // greater than or equal to the current length of the entity-body,
+            // last-byte-pos is taken to be equal to one less than the current
+            // length of the entity- body in bytes.
+            if ($e === '' || $e > $end) {
+                $e = $end;
             }
+
+            // A suffix-byte-range-spec is used to specify the suffix of the
+            // entity-body, of a length given by the suffix-length value. (That
+            // is, this form specifies the last N bytes of an entity-body.) If
+            // the entity is shorter than the specified suffix-length, the
+            // entire entity-body is used.
+            if ($o === '') {
+                // If a syntactically valid byte-range-set includes at least
+                // one suffix-byte-range-spec with a non-zero suffix-length,
+                // then the byte-range-set is satisfiable.
+                $satisfiable |= ($e != 0);
+
+                $o = max($this->size - $e, 0);
+                $e = $end;
+
+            } elseif ($o <= $end) {
+                // If a syntactically valid byte-range-set includes at least
+                // one byte- range-spec whose first-byte-pos is less than the
+                // current length of the entity-body, then the byte-range-set
+                // is satisfiable.
+                $satisfiable = true;
+            } else {
+                continue;
+            }
+
             $parts[] = array($o, $e);
         }
-        return $parts;
+
+        // If the byte-range-set is unsatisfiable, the server SHOULD return a
+        // response with a status of 416 (Requested range not satisfiable).
+        if (!$satisfiable) {
+            $error = PEAR::raiseError('Error processing range request',
+                                      HTTP_DOWNLOAD_E_INVALID_REQUEST);
+            return $error;
+        }
+        //$this->sortChunks($parts);
+        return $this->mergeChunks($parts);
+    }
+
+    /**
+     * Sorts the ranges to be in ascending order
+     *
+     * @param array &$chunks ranges to sort
+     *
+     * @return void
+     * @access protected
+     * @static
+     * @author Philippe Jausions <jausions@php.net>
+     */
+    function sortChunks(&$chunks)
+    {
+        $sortFunc = create_function('$a,$b',
+            'if ($a[0] == $b[0]) {
+                if ($a[1] == $b[1]) {
+                    return 0;
+                }
+                return (($a[1] != "*" && $a[1] < $b[1])
+                        || $b[1] == "*") ? -1 : 1;
+             }
+
+             return ($a[0] < $b[0]) ? -1 : 1;');
+
+        usort($chunks, $sortFunc);
+    }
+
+    /**
+     * Merges consecutive chunks to avoid overlaps
+     *
+     * @param array $chunks Ranges to merge
+     *
+     * @return array merged ranges
+     * @access protected
+     * @static
+     * @author Philippe Jausions <jausions@php.net>
+     */
+    function mergeChunks($chunks)
+    {
+        do {
+            $count = count($chunks);
+            $merged = array(current($chunks));
+            $j = 0;
+            for ($i = 1; $i < count($chunks); ++$i) {
+                list($o, $e) = $chunks[$i];
+                if ($merged[$j][1] == '*') {
+                    if ($merged[$j][0] <= $o) {
+                        continue;
+                    } elseif ($e == '*' || $merged[$j][0] <= $e) {
+                        $merged[$j][0] = min($merged[$j][0], $o);
+                    } else {
+                        $merged[++$j] = $chunks[$i];
+                    }
+                } elseif ($merged[$j][0] <= $o && $o <= $merged[$j][1]) {
+                    $merged[$j][1] = ($e == '*') ? '*' : max($e, $merged[$j][1]);
+                } elseif ($merged[$j][0] <= $e && $e <= $merged[$j][1]) {
+                    $merged[$j][0] = min($o, $merged[$j][0]);
+                } else {
+                    $merged[++$j] = $chunks[$i];
+                }
+            }
+            if ($count == count($merged)) {
+                break;
+            }
+            $chunks = $merged;
+        } while (true);
+        return $merged;
     }
 
     /**
@@ -944,7 +1085,7 @@ class HTTP_Download
      */
     function isRangeRequest()
     {
-        if (!isset($_SERVER['HTTP_RANGE'])) {
+        if (!isset($_SERVER['HTTP_RANGE']) || !count($this->getRanges())) {
             return false;
         }
         return $this->isValidRange();
@@ -958,7 +1099,7 @@ class HTTP_Download
      */
     function getRanges()
     {
-        return preg_match('/^bytes=((\d*-\d*,? ?)+)$/',
+        return preg_match('/^bytes=((\d+-|\d+-\d+|-\d+)(, ?(\d+-|\d+-\d+|-\d+))*)$/',
             @$_SERVER['HTTP_RANGE'], $matches) ? $matches[1] : array();
     }
 
@@ -1091,7 +1232,7 @@ class HTTP_Download
     function _getError()
     {
         $error = null;
-        if (PEAR::isError($this->_error) {
+        if (PEAR::isError($this->_error)) {
             $error = $this->_error;
             $this->_error = null;
         }

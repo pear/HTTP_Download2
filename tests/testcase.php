@@ -9,23 +9,23 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
     function HTTP_DownloadTest($name)
     {
         $this->PHPUnit_TestCase($name);
-    } 
+    }
 
     function setUp()
     {
         $this->testScript = 'http://local/www/mike/pear/HTTP_Download/tests/send.php';
-    } 
+    }
 
     function tearDown()
     {
-    } 
+    }
 
     function testHTTP_Download()
     {
         $this->assertTrue(is_a($h = &new HTTP_Download, 'HTTP_Download'));
         $this->assertTrue(is_a($h->HTTP, 'HTTP_Header'));
         unset($h);
-    } 
+    }
 
     function testsetFile()
     {
@@ -34,7 +34,7 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
         $this->assertEquals(realpath('data.txt'), $h->file, '$h->file == "data.txt');
         $this->assertTrue(PEAR::isError($h->setFile('nonexistant', false)), '$h->setFile("nonexistant")');
         unset($h);
-    } 
+    }
 
     function testsetData()
     {
@@ -42,7 +42,7 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
         $this->assertTrue(null === $h->setData('foo'), 'null === $h->setData("foo")');
         $this->assertEquals('foo', $h->data, '$h->data == "foo"');
         unset($h);
-    } 
+    }
 
     function testsetResource()
     {
@@ -52,7 +52,7 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
         fclose($f); $f = -1;
         $this->assertTrue(PEAR::isError($h->setResource($f)), '$h->setResource($f = -1)');
         unset($h);
-    } 
+    }
 
     function testsetGzip()
     {
@@ -67,7 +67,7 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
             $this->assertFalse($h->gzip, '$h->gzip');
         }
         unset($h);
-    } 
+    }
 
     function testsetContentType()
     {
@@ -76,7 +76,7 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
         $this->assertTrue(PEAR::isError($h->setContentType('##++***!§§§§?°°^^}][{')), '$h->setContentType("some weird characters")');
         $this->assertEquals('text/html;charset=iso-8859-1', $h->headers['Content-Type'], '$h->headers["Content-Type"] == "text/html;charset=iso-8859-1"');
         unset($h);
-    } 
+    }
 
     function testguessContentType()
     {
@@ -86,59 +86,125 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
             $this->assertTrue(false, $e->getMessage());
         }
         unset($h, $e);
-    } 
+    }
 
     function _send($op)
     {
+        $complete = str_repeat('1234567890',10);
+
         $r = &new HTTP_Request($this->testScript);
         foreach (array('file', 'resource', 'data') as $what) {
             $r->reset($this->testScript);
-            
+
             // without range
             $r->addQueryString('op', $op);
             $r->addQueryString('what', $what);
+            $r->addQueryString('buffersize', 33);
             $r->sendRequest();
             $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
-            $this->assertEquals(str_repeat('1234567890',10), $r->getResponseBody(), $what);
-            
+            $this->assertEquals($complete, $r->getResponseBody(), $what);
+
             // range 1-5
             $r->addHeader('Range', 'bytes=1-5');
             $r->sendRequest();
             $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
             $this->assertEquals('23456', $r->getResponseBody(), $what);
-            
+
             // range -5
             $r->addHeader('Range', 'bytes=-5');
             $r->sendRequest();
             $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
             $this->assertEquals('67890', $r->getResponseBody(), $what);
-            
+
             // range 95-
             $r->addHeader('Range', 'bytes=95-');
             $r->sendRequest();
             $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
             $this->assertEquals('67890', $r->getResponseBody(), $what);
             $this->assertTrue(preg_match('/^bytes 95-\d+/', $r->getResponseHeader('content-range')), 'bytes keyword in Content-Range header');
-            
-            // multiple range
-            $r->addHeader('Range', 'bytes=2-23,45-51,22-46');
+
+            // multiple non-overlapping ranges
+            $r->addHeader('Range', 'bytes=2-23,45-51, 24-44');
             $r->sendRequest();
             $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
             $this->assertTrue(preg_match('/^multipart\/byteranges; boundary=HTTP_DOWNLOAD-[a-f0-9.]{23}$/', $r->getResponseHeader('content-type')), 'Content-Type header: multipart/byteranges');
             $this->assertTrue(preg_match('/Content-Range: bytes 2-23/', $r->getResponseBody()), 'bytes keyword in Content-Range header');
+
+            // multiple overlapping ranges
+            $r->addHeader('Range', 'bytes=2-23,45-51,22-46');
+            $r->sendRequest();
+            $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
+            $this->assertEquals('bytes 2-51/100', $r->getResponseHeader('content-range'), 'bytes keyword in Content-Range header');
+
+            // Invalid range #1 (54-51)
+            $r->addHeader('Range', 'bytes=2-23,54-51,22-46');
+            $r->sendRequest();
+            $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
+            $this->assertEquals('100', $r->getResponseHeader('content-length'), 'full content');
+            $this->assertEquals($complete, $r->getResponseBody(), $what);
+
+            // Invalid range #2 (maformed range)
+            $r->addHeader('Range', 'bytes=2-23 24-');
+            $r->sendRequest();
+            $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
+            $this->assertEquals('100', $r->getResponseHeader('content-length'), 'full content');
+            $this->assertEquals($complete, $r->getResponseBody(), $what);
+
+            // Invalid range #3 (451-510)
+            $r->addHeader('Range', 'bytes=451-510, -0');
+            $r->sendRequest();
+            $this->assertEquals(416, $r->getResponseCode(), 'HTTP 416 Unsatisfiable range');
         }
+
+        // Stream
+        $what = 'stream';
+        $r->reset($this->testScript);
+
+        // without range
+        $r->addQueryString('op', $op);
+        $r->addQueryString('what', $what);
+        $r->addQueryString('buffersize', 33);
+        $r->sendRequest();
+        $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
+        $this->assertEquals($complete, $r->getResponseBody(), $what);
+        $this->assertFalse($r->getResponseHeader('content-range'), 'No range');
+
+        // range 1-5
+        $r->addHeader('Range', 'bytes=1-5');
+        $r->sendRequest();
+        $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
+        $this->assertEquals($complete, $r->getResponseBody(), $what);
+        $this->assertFalse($r->getResponseHeader('content-length'), 'Length unknown');
+        $this->assertFalse($r->getResponseHeader('content-range'), 'No range');
+
+        // range -5
+        $r->addHeader('Range', 'bytes=-5');
+        $r->sendRequest();
+        $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
+        $this->assertEquals($complete, $r->getResponseBody(), $what);
+        $this->assertFalse($r->getResponseHeader('content-length'), 'Length unknown');
+        $this->assertFalse($r->getResponseHeader('content-range'), 'No range');
+
+        // range 95-
+        $r->addHeader('Range', 'bytes=95-');
+        $r->sendRequest();
+        $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
+        $this->assertEquals($complete, $r->getResponseBody(), $what);
+        $this->assertFalse($r->getResponseHeader('content-length'), 'Length unknown');
+        $this->assertFalse($r->getResponseHeader('content-range'), 'No range');
+
         unset($r);
-    } 
-    
+    }
+
     function testsend()
     {
         $this->_send('send');
     }
-    
+
     function teststaticSend()
     {
         $this->_send('static');
-    } 
+    }
 
     function testsendArchive()
     {
@@ -146,7 +212,7 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
         foreach (array('tar', 'tgz', 'zip', 'bz2') as $type) {
             $r->addQueryString('type', $type);
             $r->addQueryString('op', 'arch');
-            
+
             $r->addQueryString('what', 'data.txt');
             $r->sendRequest();
             $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
@@ -154,9 +220,9 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
             $this->assertTrue(preg_match('/application\/x-(tar|gzip|bzip2|zip)/', $t = $r->getResponseHeader('content-type')), 'Reasonable Content-Type for '. $type .' (actual: '. $t .')');
         }
         unset($r);
-    } 
+    }
 
-} 
+}
 
 $suite  = &new PHPUnit_TestSuite('HTTP_DownloadTest');
 $result = &PHPUnit::run($suite);
