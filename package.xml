@@ -21,23 +21,32 @@ It features:
 ]]>
  </description>
  <lead>
+  <name>Philippe Jausions</name>
+  <user>jausions</user>
+  <email>jausions@php.net</email>
+  <active>yes</active>
+ </lead>
+ <lead>
   <name>Michael Wallner</name>
   <user>mike</user>
   <email>mike@php.net</email>
-  <active>yes</active>
+  <active>no</active>
  </lead>
- <date>2007-10-31</date>
+ <date>2009-12-13</date>
  <version>
-  <release>1.1.3</release>
+  <release>1.1.4</release>
   <api>1.1.0</api>
  </version>
  <stability>
   <release>stable</release>
   <api>stable</api>
  </stability>
- <license>BSD, revised</license>
+ <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD, revised</license>
  <notes><![CDATA[
-* Fixed bug #12174 (ob_flush in sendHeaders causes error message)
+ + To play nice with stream without known size (Req #13121)
+ + getRanges() too lax (Bug #13124)
+ + HTTP protocol specification mis-implementation (Bug #13125)
+ + No HTTP error when PHP can't read source file (Bug #16060)
 ]]>  
  </notes>
  <contents>
@@ -61,7 +70,7 @@ It features:
     <min>4.2.0</min>
    </php>
    <pearinstaller>
-    <min>1.4.0b1</min>
+    <min>1.6.0</min>
    </pearinstaller>
    <package>
     <name>PEAR</name>
@@ -103,4 +112,41 @@ It features:
    <install as="data.txt" name="tests/data.txt" />
   </filelist>
  </phprelease>
+  <changelog>
+   <release>
+    <date>2009-12-13</date>
+    <version>
+     <release>1.1.4</release>
+     <api>1.1.0</api>
+    </version>
+    <stability>
+     <release>stable</release>
+     <api>stable</api>
+    </stability>
+    <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD, revised</license>
+    <notes><![CDATA[
+ + To play nice with stream without known size (Req #13121)
+ + getRanges() too lax (Bug #13124)
+ + HTTP protocol specification mis-implementation (Bug #13125)
+ + No HTTP error when PHP can't read source file (Bug #16060)
+]]>
+    </notes>
+   </release>
+   <release>
+    <date>2007-10-31</date>
+    <version>
+     <release>1.1.3</release>
+     <api>1.1.0</api>
+    </version>
+    <stability>
+     <release>stable</release>
+     <api>stable</api>
+    </stability>
+    <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD, revised</license>
+    <notes><![CDATA[
+* Fixed bug #12174 (ob_flush in sendHeaders causes error message)
+]]>
+    </notes>
+   </release>
+  </changelog>
 </package>
