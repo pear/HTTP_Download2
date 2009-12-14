@@ -1083,7 +1083,7 @@ class HTTP_Download
     }
 
     /**
-     * Return and clear startup error
+     * Returns and clears startup error
      *
      * @return NULL|PEAR_Error startup error if one exists
      * @access protected
