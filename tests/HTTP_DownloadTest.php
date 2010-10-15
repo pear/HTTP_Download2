@@ -1,15 +1,10 @@
 <?php
 
-require_once 'PHPUnit.php';
+require_once 'PHPUnit/Framework.php';
 require_once 'HTTP/Download.php';
 require_once 'HTTP/Request.php';
 
-class HTTP_DownloadTest extends PHPUnit_TestCase {
-
-    function HTTP_DownloadTest($name)
-    {
-        $this->PHPUnit_TestCase($name);
-    }
+class HTTP_DownloadTest extends PHPUnit_Framework_TestCase {
 
     function setUp()
     {
@@ -30,8 +25,8 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
     function testsetFile()
     {
         $h = &new HTTP_Download;
-        $this->assertFalse(PEAR::isError($h->setFile('data.txt')), '$h->setFile("data.txt")');
-        $this->assertEquals(realpath('data.txt'), $h->file, '$h->file == "data.txt');
+        $this->assertFalse(PEAR::isError($h->setFile(dirname(__FILE__) . '/data.txt')), '$h->setFile("data.txt")');
+        $this->assertEquals(realpath(dirname(__FILE__) . '/data.txt'), $h->file, '$h->file == "data.txt');
         $this->assertTrue(PEAR::isError($h->setFile('nonexistant', false)), '$h->setFile("nonexistant")');
         unset($h);
     }
@@ -47,7 +42,7 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
     function testsetResource()
     {
         $h = &new HTTP_Download;
-        $this->assertFalse(PEAR::isError($h->setResource($f = fopen('data.txt', 'r'))), '$h->setResource(fopen("data.txt","r"))');
+        $this->assertFalse(PEAR::isError($h->setResource($f = fopen(dirname(__FILE__) . '/data.txt', 'r'))), '$h->setResource(fopen("data.txt","r"))');
         $this->assertEquals($f, $h->handle, '$h->handle == $f');
         fclose($f); $f = -1;
         $this->assertTrue(PEAR::isError($h->setResource($f)), '$h->setResource($f = -1)');
@@ -80,7 +75,7 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
 
     function testguessContentType()
     {
-        $h = &new HTTP_Download(array('file' => 'data.txt'));
+        $h = &new HTTP_Download(array('file' => dirname(__FILE__) . '/data.txt'));
         $e = $h->guessContentType();
         if (PEAR::isError($e) && $e->getCode() != HTTP_DOWNLOAD_E_NO_EXT_MMAGIC) {
             $this->assertTrue(false, $e->getMessage());
@@ -90,8 +85,11 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
 
     function _send($op)
     {
+        if (!file_get_contents($this->testScript)) {
+            $this->markTestSkipped($this->testScript . " is not available");
+        }
         $complete = str_repeat('1234567890',10);
-
+       
         $r = &new HTTP_Request($this->testScript);
         foreach (array('file', 'resource', 'data') as $what) {
             $r->reset($this->testScript);
@@ -208,6 +206,10 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
 
     function testsendArchive()
     {
+        if (!file_get_contents($this->testScript)) {
+            $this->markTestSkipped($this->testScript . " is not available");
+        }
+
         $r = &new HTTP_Request($this->testScript);
         foreach (array('tar', 'tgz', 'zip', 'bz2') as $type) {
             $r->addQueryString('type', $type);
@@ -223,9 +225,3 @@ class HTTP_DownloadTest extends PHPUnit_TestCase {
     }
 
 }
-
-$suite  = &new PHPUnit_TestSuite('HTTP_DownloadTest');
-$result = &PHPUnit::run($suite);
-echo $result->toString();
-
-?>
