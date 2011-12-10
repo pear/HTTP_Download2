@@ -1,5 +1,7 @@
 <?php
 
+require_once dirname(__FILE__) . '/helper.inc';
+
 if (!defined('PHPUnit_MAIN_METHOD')) {
     define('PHPUnit_MAIN_METHOD', 'HTML_Download_AllTests::main');
 }

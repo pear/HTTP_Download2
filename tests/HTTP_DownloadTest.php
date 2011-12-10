@@ -1,6 +1,7 @@
 <?php
 
-require_once 'PHPUnit/Framework.php';
+require_once dirname(__FILE__) . '/helper.inc';
+
 require_once 'HTTP/Download.php';
 require_once 'HTTP/Request.php';
 
@@ -85,7 +86,7 @@ class HTTP_DownloadTest extends PHPUnit_Framework_TestCase {
 
     function _send($op)
     {
-        if (!file_get_contents($this->testScript)) {
+        if (!@file_get_contents($this->testScript)) {
             $this->markTestSkipped($this->testScript . " is not available");
         }
         $complete = str_repeat('1234567890',10);
@@ -206,7 +207,7 @@ class HTTP_DownloadTest extends PHPUnit_Framework_TestCase {
 
     function testsendArchive()
     {
-        if (!file_get_contents($this->testScript)) {
+        if (!@file_get_contents($this->testScript)) {
             $this->markTestSkipped($this->testScript . " is not available");
         }
 
