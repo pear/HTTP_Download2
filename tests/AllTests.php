@@ -6,9 +6,7 @@ if (!defined('PHPUnit_MAIN_METHOD')) {
     define('PHPUnit_MAIN_METHOD', 'HTML_Download_AllTests::main');
 }
 
-require_once 'PHPUnit/TextUI/TestRunner.php';
-
-require_once 'HTML_DownloadTest.php';
+require_once dirname(__FILE__) . '/HTML_DownloadTest.php';
 
 class HTML_Download_AllTests
 {

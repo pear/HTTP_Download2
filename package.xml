@@ -53,7 +53,7 @@ DIR layout
    <file baseinstalldir="/" md5sum="2925fca8fe2e0b54afca58632dd82195" name="tests/AllTests.php" role="test" />
    <file baseinstalldir="HTTP" md5sum="49cb3608e2b33fad6b65df8cb8f49668" name="tests/data.txt" role="test" />
    <file baseinstalldir="HTTP" md5sum="ef5bdfce6f4bd82db0ef382512a16d67" name="tests/helper.inc" role="test">
-    <tasks:replace from="@include_path@" to="php_dir" type="pear-config" />
+    <tasks:replace from="@php_dir@" to="php_dir" type="pear-config" />
    </file>
    <file baseinstalldir="/" md5sum="55534b1b8d57d35c46238cfd701a6aa5" name="tests/HTTP_DownloadTest.php" role="test" />
    <file baseinstalldir="HTTP" md5sum="20938f4ce9bb39340fd1a6b60c5ca7d2" name="tests/send.php" role="test" />
