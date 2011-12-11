@@ -1,12 +1,18 @@
 <?php
 
-require_once dirname(__FILE__) . '/helper.inc';
-
-if (!defined('PHPUnit_MAIN_METHOD')) {
-    define('PHPUnit_MAIN_METHOD', 'HTML_Download_AllTests::main');
+// Keep tests from running twice when calling this file directly via PHPUnit.
+$call_main = false;
+if (strpos($_SERVER['argv'][0], 'phpunit') === false) {
+    // Called via php, not PHPUnit.  Pass the request to PHPUnit.
+    if (!defined('PHPUnit_MAIN_METHOD')) {
+        /** The test's main method name */
+        define('PHPUnit_MAIN_METHOD', 'HTML_Download_AllTests::main');
+        $call_main = true;
+    }
 }
 
-require_once dirname(__FILE__) . '/HTML_DownloadTest.php';
+require_once dirname(__FILE__) . '/helper.inc';
+require_once dirname(__FILE__) . '/HTTP_DownloadTest.php';
 
 class HTML_Download_AllTests
 {
@@ -19,12 +25,12 @@ class HTML_Download_AllTests
     {
         $suite = new PHPUnit_Framework_TestSuite('PEAR - HTML_Download');
 
-        $suite->addTestSuite('HTML_DownloadTest');
+        $suite->addTestSuite('HTTP_DownloadTest');
 
         return $suite;
     }
 }
 
-if (PHPUnit_MAIN_METHOD == 'HTML_Download_AllTests::main') {
+if ($call_main) {
     HTML_Download_AllTests::main();
 }
