@@ -28,8 +28,12 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
         $h = new HTTP_Download2;
         $h->setFile(dirname(__FILE__) . '/data.txt');
         $this->assertEquals(realpath(dirname(__FILE__) . '/data.txt'), $h->file, '$h->file == "data.txt');
-        $this->assertTrue(PEAR::isError($h->setFile('nonexistant', false)), '$h->setFile("nonexistant")');
-        unset($h);
+        try {
+            $h->setFile('nonexistant', false); // '$h->setFile("nonexistant")'
+
+            $this->fail("Expected a HTTP_Download2_Exception");
+        } catch (HTTP_Download2_Exception $e) {
+        }
     }
 
     function testsetData()
@@ -47,8 +51,13 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
 
         $this->assertEquals($f, $h->handle, '$h->handle == $f');
         fclose($f); $f = -1;
-        $this->assertTrue(PEAR::isError($h->setResource($f)), '$h->setResource($f = -1)');
-        unset($h);
+
+        try {
+            $h->setResource($f); //, '$h->setResource($f = -1)');
+
+            $this->fail("Expected a HTTP_Download2_Exception");
+        } catch (HTTP_Download2_Exception $e) {
+        }
     }
 
     function testsetGzip()
