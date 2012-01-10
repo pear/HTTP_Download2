@@ -120,4 +120,3 @@ class HTTP_Download2_Archive
         return $dl->send();
     }
 }
-?>

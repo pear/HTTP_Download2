@@ -248,7 +248,7 @@ class HTTP_Download2
      *
      * @see HTTP_Download2::setContentDisposition()
      */
-    function HTTP_Download2($params = array())
+    function __construct($params = array())
     {
         $this->HTTP = &new HTTP_Header;
         $this->_error = $this->setParams($params);

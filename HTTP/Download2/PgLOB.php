@@ -173,5 +173,3 @@ class HTTP_Download2_PgLOB
     }
     /**#@-*/
 }
-
-?>
