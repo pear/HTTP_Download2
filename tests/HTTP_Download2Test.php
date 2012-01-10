@@ -26,7 +26,7 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
     function testsetFile()
     {
         $h = new HTTP_Download2;
-        $this->assertFalse(PEAR::isError($h->setFile(dirname(__FILE__) . '/data.txt')), '$h->setFile("data.txt")');
+        $h->setFile(dirname(__FILE__) . '/data.txt');
         $this->assertEquals(realpath(dirname(__FILE__) . '/data.txt'), $h->file, '$h->file == "data.txt');
         $this->assertTrue(PEAR::isError($h->setFile('nonexistant', false)), '$h->setFile("nonexistant")');
         unset($h);
@@ -43,7 +43,8 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
     function testsetResource()
     {
         $h = new HTTP_Download2;
-        $this->assertFalse(PEAR::isError($h->setResource($f = fopen(dirname(__FILE__) . '/data.txt', 'r'))), '$h->setResource(fopen("data.txt","r"))');
+        $h->setResource($f = fopen(dirname(__FILE__) . '/data.txt', 'r'));
+
         $this->assertEquals($f, $h->handle, '$h->handle == $f');
         fclose($f); $f = -1;
         $this->assertTrue(PEAR::isError($h->setResource($f)), '$h->setResource($f = -1)');
@@ -53,10 +54,11 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
     function testsetGzip()
     {
         $h = new HTTP_Download2;
-        $this->assertFalse(PEAR::isError($h->setGzip(false)), '$h->setGzip(false)');
+        $h->setGzip(false);
         $this->assertFalse($h->gzip, '$h->gzip');
         if (PEAR::loadExtension('zlib')) {
-            $this->assertFalse(PEAR::isError($h->setGzip(true)), '$h->setGzip(true) without ext/zlib');
+            $h->setGzip(true);
+
             $this->assertTrue($h->gzip, '$h->gzip');
         } else {
             $this->assertTrue(PEAR::isError($h->setGzip(true)), '$h->setGzip(true) with ext/zlib');
@@ -68,7 +70,8 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
     function testsetContentType()
     {
         $h = new HTTP_Download2;
-        $this->assertFalse(PEAR::isError($h->setContentType('text/html;charset=iso-8859-1')), '$h->setContentType("text/html;charset=iso-8859-1")');
+        $h->setContentType('text/html;charset=iso-8859-1'));
+
         $this->assertTrue(PEAR::isError($h->setContentType('##++***!§§§§?°°^^}][{')), '$h->setContentType("some weird characters")');
         $this->assertEquals('text/html;charset=iso-8859-1', $h->headers['Content-Type'], '$h->headers["Content-Type"] == "text/html;charset=iso-8859-1"');
         unset($h);
@@ -77,11 +80,17 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
     function testguessContentType()
     {
         $h = new HTTP_Download2(array('file' => dirname(__FILE__) . '/data.txt'));
-        $e = $h->guessContentType();
-        if (PEAR::isError($e) && $e->getCode() != HTTP_DOWNLOAD2_E_NO_EXT_MMAGIC) {
-            $this->assertTrue(false, $e->getMessage());
+
+        try {
+            $h->guessContentType();
+
+        } catch (HTTP_Download2_Exception $e) {
+            if ($e->getCode() == HTTP_DOWNLOAD2_E_NO_EXT_MMAGIC) {
+                $this->markTestSkipped($e->getMessage());
+            }
+
+            $this->fail((string)$e);
         }
-        unset($h, $e);
     }
 
     function _send($op)

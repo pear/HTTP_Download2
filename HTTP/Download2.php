@@ -283,11 +283,7 @@ class HTTP_Download2
                 );
             }
 
-            $e = call_user_func_array(array(&$this, $method), (array) $value);
-
-            if (PEAR::isError($e)) {
-                return $e;
-            }
+            call_user_func_array(array(&$this, $method), (array) $value);
         }
         return true;
     }
