@@ -6,15 +6,15 @@ if (strpos($_SERVER['argv'][0], 'phpunit') === false) {
     // Called via php, not PHPUnit.  Pass the request to PHPUnit.
     if (!defined('PHPUnit_MAIN_METHOD')) {
         /** The test's main method name */
-        define('PHPUnit_MAIN_METHOD', 'HTML_Download_AllTests::main');
+        define('PHPUnit_MAIN_METHOD', 'HTML_Download2_AllTests::main');
         $call_main = true;
     }
 }
 
 require_once dirname(__FILE__) . '/helper.inc';
-require_once dirname(__FILE__) . '/HTTP_DownloadTest.php';
+require_once dirname(__FILE__) . '/HTTP_Download2Test.php';
 
-class HTML_Download_AllTests
+class HTML_Download2_AllTests
 {
     public static function main()
     {
@@ -23,14 +23,14 @@ class HTML_Download_AllTests
 
     public static function suite()
     {
-        $suite = new PHPUnit_Framework_TestSuite('PEAR - HTML_Download');
+        $suite = new PHPUnit_Framework_TestSuite('PEAR - HTML_Download2');
 
-        $suite->addTestSuite('HTTP_DownloadTest');
+        $suite->addTestSuite('HTTP_Download2Test');
 
         return $suite;
     }
 }
 
 if ($call_main) {
-    HTML_Download_AllTests::main();
+    HTML_Download2_AllTests::main();
 }

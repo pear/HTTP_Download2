@@ -1,7 +1,7 @@
 <?php
 
 require_once 'PEAR.php';
-require_once 'HTTP/Download.php';
+require_once 'HTTP/Download2.php';
 
 PEAR::setErrorHandling(PEAR_ERROR_PRINT);
 
@@ -73,17 +73,17 @@ switch ($_GET['what'])
 switch ($_GET['op'])
 {
     case 'static':
-        HTTP_Download::staticSend($params);
+        HTTP_Download2::staticSend($params);
     break;
 
     case 'send':
-        $h = &new HTTP_Download;
+        $h = &new HTTP_Download2;
         $h->setParams($params);
         $h->send();
     break;
 
     case 'arch':
-        HTTP_Download::sendArchive('foo.'. $_GET['type'], $_GET['what'], $_GET['type']);
+        HTTP_Download2::sendArchive('foo.'. $_GET['type'], $_GET['what'], $_GET['type']);
     break;
 }
 

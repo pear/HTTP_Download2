@@ -2,46 +2,46 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 /**
- * HTTP::Download::Archive
- * 
+ * HTTP::Download2::Archive
+ *
  * PHP versions 4 and 5
  *
  * @category   HTTP
- * @package    HTTP_Download
+ * @package    HTTP_Download2
  * @author     Michael Wallner <mike@php.net>
  * @copyright  2003-2005 Michael Wallner
  * @license    BSD, revisewd
  * @version    CVS: $Id$
- * @link       http://pear.php.net/package/HTTP_Download
+ * @link       http://pear.php.net/package/HTTP_Download2
  */
 
 /**
- * Requires HTTP_Download
+ * Requires HTTP_Download2
  */
-require_once 'HTTP/Download.php';
+require_once 'HTTP/Download2.php';
 
 /**
  * Requires System
  */
 require_once 'System.php';
 
-/** 
- * HTTP_Download_Archive
- * 
+/**
+ * HTTP_Download2_Archive
+ *
  * Helper class for sending Archives.
  *
  * @access   public
  * @version  $Revision$
  */
-class HTTP_Download_Archive
+class HTTP_Download2_Archive
 {
     /**
      * Send a bunch of files or directories as an archive
-     * 
+     *
      * Example:
      * <code>
-     *  require_once 'HTTP/Download/Archive.php';
-     *  HTTP_Download_Archive::send(
+     *  require_once 'HTTP/Download2/Archive.php';
+     *  HTTP_Download2_Archive::send(
      *      'myArchive.tgz',
      *      '/var/ftp/pub/mike',
      *      HTTP_DOWNLOAD_BZ2,
@@ -63,7 +63,7 @@ class HTTP_Download_Archive
     function send($name, $files, $type = HTTP_DOWNLOAD_TGZ, $add_path = '', $strip_path = '')
     {
         $tmp = System::mktemp();
-        
+
         switch ($type = strToUpper($type))
         {
             case HTTP_DOWNLOAD_TAR:
@@ -89,16 +89,16 @@ class HTTP_Download_Archive
                 $arc = &new Archive_Zip($tmp);
                 $content_type = 'x-zip';
             break;
-            
+
             default:
                 return PEAR::raiseError(
                     'Archive type not supported: ' . $type,
                     HTTP_DOWNLOAD_E_INVALID_ARCHIVE_TYPE
                 );
         }
-        
+
         if ($type == HTTP_DOWNLOAD_ZIP) {
-            $options = array(   'add_path' => $add_path, 
+            $options = array(   'add_path' => $add_path,
                                 'remove_path' => $strip_path);
             if (!$arc->create($files, $options)) {
                 return PEAR::raiseError('Archive creation failed.');
@@ -112,8 +112,8 @@ class HTTP_Download_Archive
             }
         }
         unset($arc);
-        
-        $dl = &new HTTP_Download(array('file' => $tmp));
+
+        $dl = &new HTTP_Download2(array('file' => $tmp));
         $dl->setContentType('application/' . $content_type);
         $dl->setContentDisposition(HTTP_DOWNLOAD_ATTACHMENT, $name);
         return $dl->send();
