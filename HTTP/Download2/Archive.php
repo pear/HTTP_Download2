@@ -69,25 +69,25 @@ class HTTP_Download2_Archive
         {
             case HTTP_DOWNLOAD2_TAR:
                 include_once 'Archive/Tar.php';
-                $arc = &new Archive_Tar($tmp);
+                $arc = new Archive_Tar($tmp);
                 $content_type = 'x-tar';
             break;
 
             case HTTP_DOWNLOAD2_TGZ:
                 include_once 'Archive/Tar.php';
-                $arc = &new Archive_Tar($tmp, 'gz');
+                $arc = new Archive_Tar($tmp, 'gz');
                 $content_type = 'x-gzip';
             break;
 
             case HTTP_DOWNLOAD2_BZ2:
                 include_once 'Archive/Tar.php';
-                $arc = &new Archive_Tar($tmp, 'bz2');
+                $arc = new Archive_Tar($tmp, 'bz2');
                 $content_type = 'x-bzip2';
             break;
 
             case HTTP_DOWNLOAD2_ZIP:
                 include_once 'Archive/Zip.php';
-                $arc = &new Archive_Zip($tmp);
+                $arc = new Archive_Zip($tmp);
                 $content_type = 'x-zip';
             break;
 
@@ -114,7 +114,7 @@ class HTTP_Download2_Archive
         }
         unset($arc);
 
-        $dl = &new HTTP_Download2(array('file' => $tmp));
+        $dl = new HTTP_Download2(array('file' => $tmp));
         $dl->setContentType('application/' . $content_type);
         $dl->setContentDisposition(HTTP_DOWNLOAD2_ATTACHMENT, $name);
         return $dl->send();

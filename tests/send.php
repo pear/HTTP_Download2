@@ -77,7 +77,7 @@ switch ($_GET['op'])
     break;
 
     case 'send':
-        $h = &new HTTP_Download2;
+        $h = new HTTP_Download2;
         $h->setParams($params);
         $h->send();
     break;

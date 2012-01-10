@@ -28,7 +28,7 @@ stream_register_wrapper('pglob', 'HTTP_Download2_PgLOB');
  * $db = &DB::connect('pgsql://user:pass@host/db');
  * // or $db = pg_connect(...);
  * $lo = HTTP_Download2_PgLOB::open($db, 12345);
- * $dl = &new HTTP_Download2;
+ * $dl = new HTTP_Download2;
  * $dl->setResource($lo);
  * $dl->send()
  * </code>

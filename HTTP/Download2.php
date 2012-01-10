@@ -250,7 +250,7 @@ class HTTP_Download2
      */
     function __construct($params = array())
     {
-        $this->HTTP = &new HTTP_Header;
+        $this->HTTP = new HTTP_Header;
         $this->_error = $this->setParams($params);
     }
     // }}}
@@ -764,16 +764,10 @@ class HTTP_Download2
      */
     function staticSend($params, $guess = false)
     {
-        $d = &new HTTP_Download2();
+        $d = new HTTP_Download2();
         $e = $d->setParams($params);
-        if (PEAR::isError($e)) {
-            return $e;
-        }
         if ($guess) {
-            $e = $d->guessContentType();
-            if (PEAR::isError($e)) {
-                return $e;
-            }
+            $d->guessContentType();
         }
         return $d->send();
     }
