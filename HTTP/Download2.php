@@ -269,10 +269,6 @@ class HTTP_Download2
      */
     function setParams($params)
     {
-        $error = $this->_getError();
-        if ($error !== null) {
-            return $error;
-        }
         foreach((array) $params as $param => $value){
             $method = 'set'. $param;
 
@@ -303,10 +299,6 @@ class HTTP_Download2
      */
     function setFile($file, $send_error = true)
     {
-        $error = $this->_getError();
-        if ($error !== null) {
-            return $error;
-        }
         $file = realpath($file);
         if (!is_file($file)) {
             if ($send_error) {
@@ -360,10 +352,6 @@ class HTTP_Download2
      */
     function setResource($handle = null)
     {
-        $error = $this->_getError();
-        if ($error !== null) {
-            return $error;
-        }
         if (!isset($handle)) {
             $this->handle = null;
             $this->size = 0;
@@ -396,10 +384,6 @@ class HTTP_Download2
      */
     function setGzip($gzip = false)
     {
-        $error = $this->_getError();
-        if ($error !== null) {
-            return $error;
-        }
         if ($gzip && !PEAR::loadExtension('zlib')){
             throw new HTTP_Download2_Exception(
                 'GZIP compression (ext/zlib) not available.',
@@ -486,10 +470,6 @@ class HTTP_Download2
      */
     function setBufferSize($bytes = 2097152)
     {
-        $error = $this->_getError();
-        if ($error !== null) {
-            return $error;
-        }
         if (0 >= $bytes) {
             throw new HTTP_Download2_Exception(
                 'Buffer size must be greater than 0 bytes ('. $bytes .' given)',
@@ -590,10 +570,6 @@ class HTTP_Download2
      */
     function setContentType($content_type = 'application/x-octetstream')
     {
-        $error = $this->_getError();
-        if ($error !== null) {
-            return $error;
-        }
         if (!preg_match('/^[a-z]+\w*\/[a-z]+[\w.;= -]*$/', $content_type)) {
             throw new HTTP_Download2_Exception(
                 "Invalid content type '$content_type' supplied.",
@@ -624,10 +600,6 @@ class HTTP_Download2
      */
     function guessContentType()
     {
-        $error = $this->_getError();
-        if ($error !== null) {
-            return $error;
-        }
         if (class_exists('MIME_Type') || @include_once 'MIME/Type.php') {
             if (PEAR::isError($mime_type = MIME_Type::autoDetect($this->file))) {
                 throw new HTTP_Download2_Exception($mime_type->getMessage(),
@@ -670,10 +642,6 @@ class HTTP_Download2
      */
     function send($autoSetContentDisposition = true)
     {
-        $error = $this->_getError();
-        if ($error !== null) {
-            return $error;
-        }
         if (headers_sent()) {
             throw new HTTP_Download2_Exception(
                 'Headers already sent.',
@@ -1213,21 +1181,4 @@ class HTTP_Download2
         }
     }
 
-    /**
-     * Returns and clears startup error
-     *
-     * @return NULL|PEAR_Error startup error if one exists
-     * @access protected
-     */
-    function _getError()
-    {
-        $error = null;
-        if (PEAR::isError($this->_error)) {
-            $error = $this->_error;
-            $this->_error = null;
-        }
-        return $error;
-    }
-    // }}}
 }
-?>
