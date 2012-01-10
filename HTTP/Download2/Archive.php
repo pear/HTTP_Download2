@@ -19,6 +19,7 @@
  * Requires HTTP_Download2
  */
 require_once 'HTTP/Download2.php';
+require_once 'HTTP/Download2/Exception.php';
 
 /**
  * Requires System
@@ -91,7 +92,7 @@ class HTTP_Download2_Archive
             break;
 
             default:
-                return PEAR::raiseError(
+                throw new HTTP_Download2_Exception(
                     'Archive type not supported: ' . $type,
                     HTTP_DOWNLOAD2_E_INVALID_ARCHIVE_TYPE
                 );
@@ -101,11 +102,11 @@ class HTTP_Download2_Archive
             $options = array(   'add_path' => $add_path,
                                 'remove_path' => $strip_path);
             if (!$arc->create($files, $options)) {
-                return PEAR::raiseError('Archive creation failed.');
+                throw new HTTP_Download2_Exception('Archive creation failed.');
             }
         } else {
             if (!$e = $arc->createModify($files, $add_path, $strip_path)) {
-                return PEAR::raiseError('Archive creation failed.');
+                throw new HTTP_Download2_Exception('Archive creation failed.');
             }
             if (PEAR::isError($e)) {
                 return $e;

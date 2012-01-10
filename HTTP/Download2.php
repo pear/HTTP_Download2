@@ -20,6 +20,7 @@
  * Requires PEAR
  */
 require_once 'PEAR.php';
+require_once 'HTTP/Download2/Exception.php';
 
 /**
  * Requires HTTP_Header
@@ -276,7 +277,7 @@ class HTTP_Download2
             $method = 'set'. $param;
 
             if (!method_exists($this, $method)) {
-                return PEAR::raiseError(
+                throw new HTTP_Download2_Exception(
                     "Method '$method' doesn't exist.",
                     HTTP_DOWNLOAD2_E_INVALID_PARAM
                 );
@@ -315,7 +316,7 @@ class HTTP_Download2
             if ($send_error) {
                 $this->HTTP->sendStatusCode(404);
             }
-            return PEAR::raiseError(
+            throw new HTTP_Download2_Exception(
                 "File '$file' not found.",
                 HTTP_DOWNLOAD2_E_INVALID_FILE
             );
@@ -324,7 +325,7 @@ class HTTP_Download2
             if ($send_error) {
                 $this->HTTP->sendStatusCode(403);
             }
-            return PEAR::raiseError(
+            throw new HTTP_Download2_Exception(
                 "Cannot read file '$file'.",
                 HTTP_DOWNLOAD2_E_INVALID_FILE
             );
@@ -381,7 +382,7 @@ class HTTP_Download2
             return true;
         }
 
-        return PEAR::raiseError(
+        throw new HTTP_Download2_Exception(
             "Handle '$handle' is no valid resource.",
             HTTP_DOWNLOAD2_E_INVALID_RESOURCE
         );
@@ -404,7 +405,7 @@ class HTTP_Download2
             return $error;
         }
         if ($gzip && !PEAR::loadExtension('zlib')){
-            return PEAR::raiseError(
+            throw new HTTP_Download2_Exception(
                 'GZIP compression (ext/zlib) not available.',
                 HTTP_DOWNLOAD2_E_NO_EXT_ZLIB
             );
@@ -494,7 +495,7 @@ class HTTP_Download2
             return $error;
         }
         if (0 >= $bytes) {
-            return PEAR::raiseError(
+            throw new HTTP_Download2_Exception(
                 'Buffer size must be greater than 0 bytes ('. $bytes .' given)',
                 HTTP_DOWNLOAD2_E_INVALID_PARAM);
         }
@@ -598,7 +599,7 @@ class HTTP_Download2
             return $error;
         }
         if (!preg_match('/^[a-z]+\w*\/[a-z]+[\w.;= -]*$/', $content_type)) {
-            return PEAR::raiseError(
+            throw new HTTP_Download2_Exception(
                 "Invalid content type '$content_type' supplied.",
                 HTTP_DOWNLOAD2_E_INVALID_CONTENT_TYPE
             );
@@ -633,25 +634,25 @@ class HTTP_Download2
         }
         if (class_exists('MIME_Type') || @include_once 'MIME/Type.php') {
             if (PEAR::isError($mime_type = MIME_Type::autoDetect($this->file))) {
-                return PEAR::raiseError($mime_type->getMessage(),
+                throw new HTTP_Download2_Exception($mime_type->getMessage(),
                     HTTP_DOWNLOAD2_E_INVALID_CONTENT_TYPE);
             }
             return $this->setContentType($mime_type);
         }
         if (!function_exists('mime_content_type')) {
-            return PEAR::raiseError(
+            throw new HTTP_Download2_Exception(
                 'This feature requires ext/mime_magic!',
                 HTTP_DOWNLOAD2_E_NO_EXT_MMAGIC
             );
         }
         if (!is_file(ini_get('mime_magic.magicfile'))) {
-            return PEAR::raiseError(
+            throw new HTTP_Download2_Exception(
                 'ext/mime_magic is loaded but not properly configured!',
                 HTTP_DOWNLOAD2_E_NO_EXT_MMAGIC
             );
         }
         if (!$content_type = @mime_content_type($this->file)) {
-            return PEAR::raiseError(
+            throw new HTTP_Download2_Exception(
                 'Couldn\'t guess content type with mime_content_type().',
                 HTTP_DOWNLOAD2_E_INVALID_CONTENT_TYPE
             );
@@ -678,7 +679,7 @@ class HTTP_Download2
             return $error;
         }
         if (headers_sent()) {
-            return PEAR::raiseError(
+            throw new HTTP_Download2_Exception(
                 'Headers already sent.',
                 HTTP_DOWNLOAD2_E_HEADERS_SENT
             );
@@ -1001,9 +1002,8 @@ class HTTP_Download2
         // If the byte-range-set is unsatisfiable, the server SHOULD return a
         // response with a status of 416 (Requested range not satisfiable).
         if (!$satisfiable) {
-            $error = PEAR::raiseError('Error processing range request',
+            throw new HTTP_Download2_Exception('Error processing range request',
                                       HTTP_DOWNLOAD2_E_INVALID_REQUEST);
-            return $error;
         }
         //$this->sortChunks($parts);
         return $this->mergeChunks($parts);
