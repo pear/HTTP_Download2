@@ -12,10 +12,6 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
         $this->testScript = 'http://local/www/mike/pear/HTTP_Download2/tests/send.php';
     }
 
-    function tearDown()
-    {
-    }
-
     function testHTTP_Download2()
     {
         $this->assertTrue(is_a($h = new HTTP_Download2, 'HTTP_Download2'));
