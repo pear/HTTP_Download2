@@ -70,7 +70,7 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
     function testsetContentType()
     {
         $h = new HTTP_Download2;
-        $h->setContentType('text/html;charset=iso-8859-1'));
+        $h->setContentType('text/html;charset=iso-8859-1');
 
         $this->assertTrue(PEAR::isError($h->setContentType('##++***!§§§§?°°^^}][{')), '$h->setContentType("some weird characters")');
         $this->assertEquals('text/html;charset=iso-8859-1', $h->headers['Content-Type'], '$h->headers["Content-Type"] == "text/html;charset=iso-8859-1"');
