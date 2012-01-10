@@ -44,7 +44,7 @@ class HTTP_Download2_Archive
      *  HTTP_Download2_Archive::send(
      *      'myArchive.tgz',
      *      '/var/ftp/pub/mike',
-     *      HTTP_DOWNLOAD_BZ2,
+     *      HTTP_DOWNLOAD2_BZ2,
      *      '',
      *      '/var/ftp/pub'
      *  );
@@ -60,31 +60,31 @@ class HTTP_Download2_Archive
      * @param   string  $add_path   path that should be prepended to the files
      * @param   string  $strip_path path that should be stripped from the files
      */
-    function send($name, $files, $type = HTTP_DOWNLOAD_TGZ, $add_path = '', $strip_path = '')
+    function send($name, $files, $type = HTTP_DOWNLOAD2_TGZ, $add_path = '', $strip_path = '')
     {
         $tmp = System::mktemp();
 
         switch ($type = strToUpper($type))
         {
-            case HTTP_DOWNLOAD_TAR:
+            case HTTP_DOWNLOAD2_TAR:
                 include_once 'Archive/Tar.php';
                 $arc = &new Archive_Tar($tmp);
                 $content_type = 'x-tar';
             break;
 
-            case HTTP_DOWNLOAD_TGZ:
+            case HTTP_DOWNLOAD2_TGZ:
                 include_once 'Archive/Tar.php';
                 $arc = &new Archive_Tar($tmp, 'gz');
                 $content_type = 'x-gzip';
             break;
 
-            case HTTP_DOWNLOAD_BZ2:
+            case HTTP_DOWNLOAD2_BZ2:
                 include_once 'Archive/Tar.php';
                 $arc = &new Archive_Tar($tmp, 'bz2');
                 $content_type = 'x-bzip2';
             break;
 
-            case HTTP_DOWNLOAD_ZIP:
+            case HTTP_DOWNLOAD2_ZIP:
                 include_once 'Archive/Zip.php';
                 $arc = &new Archive_Zip($tmp);
                 $content_type = 'x-zip';
@@ -93,11 +93,11 @@ class HTTP_Download2_Archive
             default:
                 return PEAR::raiseError(
                     'Archive type not supported: ' . $type,
-                    HTTP_DOWNLOAD_E_INVALID_ARCHIVE_TYPE
+                    HTTP_DOWNLOAD2_E_INVALID_ARCHIVE_TYPE
                 );
         }
 
-        if ($type == HTTP_DOWNLOAD_ZIP) {
+        if ($type == HTTP_DOWNLOAD2_ZIP) {
             $options = array(   'add_path' => $add_path,
                                 'remove_path' => $strip_path);
             if (!$arc->create($files, $options)) {
@@ -115,7 +115,7 @@ class HTTP_Download2_Archive
 
         $dl = &new HTTP_Download2(array('file' => $tmp));
         $dl->setContentType('application/' . $content_type);
-        $dl->setContentDisposition(HTTP_DOWNLOAD_ATTACHMENT, $name);
+        $dl->setContentDisposition(HTTP_DOWNLOAD2_ATTACHMENT, $name);
         return $dl->send();
     }
 }

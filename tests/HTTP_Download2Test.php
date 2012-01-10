@@ -78,7 +78,7 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
     {
         $h = &new HTTP_Download2(array('file' => dirname(__FILE__) . '/data.txt'));
         $e = $h->guessContentType();
-        if (PEAR::isError($e) && $e->getCode() != HTTP_DOWNLOAD_E_NO_EXT_MMAGIC) {
+        if (PEAR::isError($e) && $e->getCode() != HTTP_DOWNLOAD2_E_NO_EXT_MMAGIC) {
             $this->assertTrue(false, $e->getMessage());
         }
         unset($h, $e);
