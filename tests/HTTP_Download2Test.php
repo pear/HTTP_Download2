@@ -61,7 +61,7 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
         $h = new HTTP_Download2;
         $h->setGzip(false);
         $this->assertFalse($h->gzip, '$h->gzip');
-        if (PEAR::loadExtension('zlib')) {
+        if (extension_loaded('zlib')) {
             $h->setGzip(true);
 
             $this->assertTrue($h->gzip, '$h->gzip');

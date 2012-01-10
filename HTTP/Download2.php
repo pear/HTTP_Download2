@@ -384,7 +384,7 @@ class HTTP_Download2
      */
     function setGzip($gzip = false)
     {
-        if ($gzip && !PEAR::loadExtension('zlib')){
+        if ($gzip && !extension_loaded('zlib')) {
             throw new HTTP_Download2_Exception(
                 'GZIP compression (ext/zlib) not available.',
                 HTTP_DOWNLOAD2_E_NO_EXT_ZLIB
