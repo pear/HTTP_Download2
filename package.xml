@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package packagerversion="1.9.1" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
+<package packagerversion="1.9.4" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
  <name>HTTP_Download</name>
  <channel>pear.php.net</channel>
  <summary>Send HTTP Downloads</summary>
@@ -26,11 +26,11 @@ It features:
   <email>mike@php.net</email>
   <active>no</active>
  </lead>
- <date>2010-10-16</date>
- <time>00:17:17</time>
+ <date>2012-01-11</date>
+ <time>10:23:54</time>
  <version>
-  <release>1.1.4</release>
-  <api>1.1.0</api>
+  <release>0.1.0</release>
+  <api>0.1.0</api>
  </version>
  <stability>
   <release>stable</release>
@@ -38,26 +38,21 @@ It features:
  </stability>
  <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD, revised</license>
  <notes>
-+ To play nice with stream without known size (Req #13121)
-+ getRanges() too lax (Bug #13124)
-+ HTTP protocol specification mis-implementation (Bug #13125)
-+ No HTTP error when PHP can&apos;t read source file (Bug #16060)
-QA release
-DIR layout
+Fork HTTP_Download
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
-   <file baseinstalldir="/" md5sum="dbdbd396f20885244c4c509b7fe1f559" name="HTTP/Download.php" role="php" />
-   <file baseinstalldir="/" md5sum="329b169ce902c04bc989c3a1952b9b8b" name="HTTP/Download/Archive.php" role="php" />
-   <file baseinstalldir="/" md5sum="18cad0fdf358f1982e4fe189b1df0186" name="HTTP/Download/PgLOB.php" role="php" />
-   <file baseinstalldir="/" md5sum="2925fca8fe2e0b54afca58632dd82195" name="tests/AllTests.php" role="test" />
-   <file baseinstalldir="HTTP" md5sum="49cb3608e2b33fad6b65df8cb8f49668" name="tests/data.txt" role="test" />
-   <file baseinstalldir="HTTP" md5sum="ef5bdfce6f4bd82db0ef382512a16d67" name="tests/helper.inc" role="test">
-    <tasks:replace from="@php_dir@" to="php_dir" type="pear-config" />
-   </file>
-   <file baseinstalldir="/" md5sum="55534b1b8d57d35c46238cfd701a6aa5" name="tests/HTTP_DownloadTest.php" role="test" />
-   <file baseinstalldir="HTTP" md5sum="20938f4ce9bb39340fd1a6b60c5ca7d2" name="tests/send.php" role="test" />
+   <file baseinstalldir="/" md5sum="8383cb204e68596b97b60d402d2a9276" name="/HTTP/Download2.php" role="php" />
+   <file baseinstalldir="/" md5sum="ffc234f271e0cc0bdc09695c0cbd2bd3" name="/HTTP/Download2/Archive.php" role="php" />
+   <file baseinstalldir="/" md5sum="e5ec70c55cd5b2209591b4479d663911" name="/HTTP/Download2/Exception.php" role="php" />
+   <file baseinstalldir="/" md5sum="38a6eaad8cdaaf21ead80c1035239800" name="/HTTP/Download2/PgLOB.php" role="php" />
+   <file baseinstalldir="/" md5sum="304a61b342eb86d4985d76f85b181b83" name="/tests/AllTests.php" role="php" />
+   <file baseinstalldir="/" md5sum="49cb3608e2b33fad6b65df8cb8f49668" name="/tests/data.txt" role="data" />
+   <file baseinstalldir="/" md5sum="17a9344ab96a49384badd3fffcd8578e" name="/tests/helper.inc" role="data" />
+   <file baseinstalldir="/" md5sum="3b2c5e0cc86f9e39f5ea377d621192f6" name="/tests/HTTP_Download2Test.php" role="php" />
+   <file baseinstalldir="/" md5sum="299143f106c9c16e204327135a920335" name="/tests/send.php" role="php" />
    <file baseinstalldir="HTTP" md5sum="8f678fe06ab84642adc04a7c7bd3e34b" name="LICENSE" role="doc" />
+   <file baseinstalldir="/" md5sum="8fbe49658d0fc380e28c59f458b61aa1" name="README" role="data" />
   </dir>
  </contents>
  <dependencies>
@@ -101,46 +96,21 @@ DIR layout
    </extension>
   </optional>
  </dependencies>
- <phprelease>
-  <filelist>
-   <install as="send.php" name="tests/send.php" />
-   <install as="data.txt" name="tests/data.txt" />
-  </filelist>
- </phprelease>
+ <phprelease />
  <changelog>
   <release>
-   <date>2007-10-31</date>
    <version>
-    <release>1.1.3</release>
-    <api>1.1.0</api>
+    <release>0.1.0</release>
+    <api>0.1.0</api>
    </version>
    <stability>
     <release>stable</release>
     <api>stable</api>
    </stability>
+   <date>2012-01-11</date>
    <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD, revised</license>
    <notes>
-* Fixed bug #12174 (ob_flush in sendHeaders causes error message)
-   </notes>
-  </release>
-  <release>
-   <version>
-    <release>1.1.4</release>
-    <api>1.1.0</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <date>2010-10-16</date>
-   <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD, revised</license>
-   <notes>
-+ To play nice with stream without known size (Req #13121)
-+ getRanges() too lax (Bug #13124)
-+ HTTP protocol specification mis-implementation (Bug #13125)
-+ No HTTP error when PHP can&apos;t read source file (Bug #16060)
-QA release
-DIR layout
+Fork HTTP_Download
    </notes>
   </release>
  </changelog>
