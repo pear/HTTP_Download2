@@ -117,68 +117,68 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
         }
         $complete = str_repeat('1234567890',10);
 
-        $r = new HTTP_Request($this->testScript);
+        $r = new HTTP_Request2($this->testScript);
         foreach (array('file', 'resource', 'data') as $what) {
             $r->reset($this->testScript);
 
             // without range
-            $r->addQueryString('op', $op);
-            $r->addQueryString('what', $what);
-            $r->addQueryString('buffersize', 33);
-            $r->sendRequest();
-            $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
-            $this->assertEquals($complete, $r->getResponseBody(), $what);
+            $r->addPostParameter('op', $op);
+            $r->addPostParameter('what', $what);
+            $r->addPostParameter('buffersize', 33);
+            $response = $r->send();
+            $this->assertEquals(200, $response->getStatus(), 'HTTP 200 Ok');
+            $this->assertEquals($complete, $response->getBody(), $what);
 
             // range 1-5
-            $r->addHeader('Range', 'bytes=1-5');
-            $r->sendRequest();
-            $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
-            $this->assertEquals('23456', $r->getResponseBody(), $what);
+            $r->setHeader('Range', 'bytes=1-5');
+            $response = $r->send();
+            $this->assertEquals(206, $response->getStatus(), 'HTTP 206 Partial Content');
+            $this->assertEquals('23456', $response->getBody(), $what);
 
             // range -5
-            $r->addHeader('Range', 'bytes=-5');
-            $r->sendRequest();
-            $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
-            $this->assertEquals('67890', $r->getResponseBody(), $what);
+            $r->setHeader('Range', 'bytes=-5');
+            $response = $r->send();
+            $this->assertEquals(206, $response->getStatus(), 'HTTP 206 Partial Content');
+            $this->assertEquals('67890', $response->getBody(), $what);
 
             // range 95-
-            $r->addHeader('Range', 'bytes=95-');
-            $r->sendRequest();
-            $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
-            $this->assertEquals('67890', $r->getResponseBody(), $what);
-            $this->assertTrue(preg_match('/^bytes 95-\d+/', $r->getResponseHeader('content-range')), 'bytes keyword in Content-Range header');
+            $r->setHeader('Range', 'bytes=95-');
+            $response = $r->send();
+            $this->assertEquals(206, $response->getStatus(), 'HTTP 206 Partial Content');
+            $this->assertEquals('67890', $response->getBody(), $what);
+            $this->assertTrue(preg_match('/^bytes 95-\d+/', $response->getHeader('content-range')), 'bytes keyword in Content-Range header');
 
             // multiple non-overlapping ranges
-            $r->addHeader('Range', 'bytes=2-23,45-51, 24-44');
-            $r->sendRequest();
-            $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
-            $this->assertTrue(preg_match('/^multipart\/byteranges; boundary=HTTP_DOWNLOAD-[a-f0-9.]{23}$/', $r->getResponseHeader('content-type')), 'Content-Type header: multipart/byteranges');
-            $this->assertTrue(preg_match('/Content-Range: bytes 2-23/', $r->getResponseBody()), 'bytes keyword in Content-Range header');
+            $r->setHeader('Range', 'bytes=2-23,45-51, 24-44');
+            $response = $r->send();
+            $this->assertEquals(206, $response->getStatus(), 'HTTP 206 Partial Content');
+            $this->assertTrue(preg_match('/^multipart\/byteranges; boundary=HTTP_DOWNLOAD-[a-f0-9.]{23}$/', $response->getHeader('content-type')), 'Content-Type header: multipart/byteranges');
+            $this->assertTrue(preg_match('/Content-Range: bytes 2-23/', $response->getBody()), 'bytes keyword in Content-Range header');
 
             // multiple overlapping ranges
-            $r->addHeader('Range', 'bytes=2-23,45-51,22-46');
-            $r->sendRequest();
-            $this->assertEquals(206, $r->getResponseCode(), 'HTTP 206 Partial Content');
-            $this->assertEquals('bytes 2-51/100', $r->getResponseHeader('content-range'), 'bytes keyword in Content-Range header');
+            $r->setHeader('Range', 'bytes=2-23,45-51,22-46');
+            $response = $r->send();
+            $this->assertEquals(206, $response->getStatus(), 'HTTP 206 Partial Content');
+            $this->assertEquals('bytes 2-51/100', $response->getHeader('content-range'), 'bytes keyword in Content-Range header');
 
             // Invalid range #1 (54-51)
-            $r->addHeader('Range', 'bytes=2-23,54-51,22-46');
-            $r->sendRequest();
-            $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
-            $this->assertEquals('100', $r->getResponseHeader('content-length'), 'full content');
-            $this->assertEquals($complete, $r->getResponseBody(), $what);
+            $r->setHeader('Range', 'bytes=2-23,54-51,22-46');
+            $response = $r->send();
+            $this->assertEquals(200, $response->getStatus(), 'HTTP 200 Ok');
+            $this->assertEquals('100', $response->getHeader('content-length'), 'full content');
+            $this->assertEquals($complete, $response->getBody(), $what);
 
             // Invalid range #2 (maformed range)
-            $r->addHeader('Range', 'bytes=2-23 24-');
-            $r->sendRequest();
-            $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
-            $this->assertEquals('100', $r->getResponseHeader('content-length'), 'full content');
-            $this->assertEquals($complete, $r->getResponseBody(), $what);
+            $r->setHeader('Range', 'bytes=2-23 24-');
+            $response = $r->send();
+            $this->assertEquals(200, $response->getStatus(), 'HTTP 200 Ok');
+            $this->assertEquals('100', $response->getHeader('content-length'), 'full content');
+            $this->assertEquals($complete, $response->getBody(), $what);
 
             // Invalid range #3 (451-510)
-            $r->addHeader('Range', 'bytes=451-510, -0');
-            $r->sendRequest();
-            $this->assertEquals(416, $r->getResponseCode(), 'HTTP 416 Unsatisfiable range');
+            $r->setHeader('Range', 'bytes=451-510, -0');
+            $response = $r->send();
+            $this->assertEquals(416, $response->getStatus(), 'HTTP 416 Unsatisfiable range');
         }
 
         // Stream
@@ -186,37 +186,37 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
         $r->reset($this->testScript);
 
         // without range
-        $r->addQueryString('op', $op);
-        $r->addQueryString('what', $what);
-        $r->addQueryString('buffersize', 33);
-        $r->sendRequest();
-        $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
-        $this->assertEquals($complete, $r->getResponseBody(), $what);
-        $this->assertFalse($r->getResponseHeader('content-range'), 'No range');
+        $r->addPostParameter('op', $op);
+        $r->addPostParameter('what', $what);
+        $r->addPostParameter('buffersize', 33);
+        $response = $r->send();
+        $this->assertEquals(200, $response->getStatus(), 'HTTP 200 Ok');
+        $this->assertEquals($complete, $response->getBody(), $what);
+        $this->assertFalse($response->getHeader('content-range'), 'No range');
 
         // range 1-5
-        $r->addHeader('Range', 'bytes=1-5');
-        $r->sendRequest();
-        $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
-        $this->assertEquals($complete, $r->getResponseBody(), $what);
-        $this->assertFalse($r->getResponseHeader('content-length'), 'Length unknown');
-        $this->assertFalse($r->getResponseHeader('content-range'), 'No range');
+        $r->setHeader('Range', 'bytes=1-5');
+        $response = $r->send();
+        $this->assertEquals(200, $response->getStatus(), 'HTTP 200 Ok');
+        $this->assertEquals($complete, $response->getBody(), $what);
+        $this->assertFalse($response->getHeader('content-length'), 'Length unknown');
+        $this->assertFalse($response->getHeader('content-range'), 'No range');
 
         // range -5
-        $r->addHeader('Range', 'bytes=-5');
-        $r->sendRequest();
-        $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
-        $this->assertEquals($complete, $r->getResponseBody(), $what);
-        $this->assertFalse($r->getResponseHeader('content-length'), 'Length unknown');
-        $this->assertFalse($r->getResponseHeader('content-range'), 'No range');
+        $r->setHeader('Range', 'bytes=-5');
+        $response = $r->send();
+        $this->assertEquals(200, $response->getStatus(), 'HTTP 200 Ok');
+        $this->assertEquals($complete, $response->getBody(), $what);
+        $this->assertFalse($response->getHeader('content-length'), 'Length unknown');
+        $this->assertFalse($response->getHeader('content-range'), 'No range');
 
         // range 95-
-        $r->addHeader('Range', 'bytes=95-');
-        $r->sendRequest();
-        $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
-        $this->assertEquals($complete, $r->getResponseBody(), $what);
-        $this->assertFalse($r->getResponseHeader('content-length'), 'Length unknown');
-        $this->assertFalse($r->getResponseHeader('content-range'), 'No range');
+        $r->setHeader('Range', 'bytes=95-');
+        $response = $r->send();
+        $this->assertEquals(200, $response->getStatus(), 'HTTP 200 Ok');
+        $this->assertEquals($complete, $response->getBody(), $what);
+        $this->assertFalse($response->getHeader('content-length'), 'Length unknown');
+        $this->assertFalse($response->getHeader('content-range'), 'No range');
 
         unset($r);
     }
@@ -237,16 +237,16 @@ class HTTP_Download2Test extends PHPUnit_Framework_TestCase {
             $this->markTestSkipped($this->testScript . " is not available");
         }
 
-        $r = new HTTP_Request($this->testScript);
+        $r = new HTTP_Request2($this->testScript);
         foreach (array('tar', 'tgz', 'zip', 'bz2') as $type) {
-            $r->addQueryString('type', $type);
-            $r->addQueryString('op', 'arch');
+            $r->addPostParameter('type', $type);
+            $r->addPostParameter('op', 'arch');
 
-            $r->addQueryString('what', 'data.txt');
-            $r->sendRequest();
-            $this->assertEquals(200, $r->getResponseCode(), 'HTTP 200 Ok');
-            $this->assertTrue($r->getResponseHeader('content-length') > 0, 'Content-Length > 0');
-            $this->assertTrue(preg_match('/application\/x-(tar|gzip|bzip2|zip)/', $t = $r->getResponseHeader('content-type')), 'Reasonable Content-Type for '. $type .' (actual: '. $t .')');
+            $r->addPostParameter('what', 'data.txt');
+            $response = $r->send();
+            $this->assertEquals(200, $response->getStatus(), 'HTTP 200 Ok');
+            $this->assertTrue($response->getHeader('content-length') > 0, 'Content-Length > 0');
+            $this->assertTrue(preg_match('/application\/x-(tar|gzip|bzip2|zip)/', $t = $response->getHeader('content-type')), 'Reasonable Content-Type for '. $type .' (actual: '. $t .')');
         }
         unset($r);
     }
