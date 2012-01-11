@@ -5,7 +5,7 @@ require_once 'HTTP/Download2.php';
 
 PEAR::setErrorHandling(PEAR_ERROR_PRINT);
 
-$params = @$_GET['params'];
+$params = @$_POST['params'];
 
 // Whatch for hackers
 unset($params['file']);
@@ -54,7 +54,7 @@ class testStream
 stream_wrapper_register('mytest', 'testStream');
 
 
-switch ($_GET['what'])
+switch ($_POST['what'])
 {
     case 'file':
         $params['file'] = 'data.txt';
@@ -70,7 +70,7 @@ switch ($_GET['what'])
     break;
 }
 
-switch ($_GET['op'])
+switch ($_POST['op'])
 {
     case 'static':
         HTTP_Download2::staticSend($params);
