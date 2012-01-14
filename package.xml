@@ -26,8 +26,8 @@ It features:
   <email>mike@php.net</email>
   <active>no</active>
  </lead>
- <date>2012-01-11</date>
- <time>10:23:54</time>
+ <date>2012-01-15</date>
+ <time>00:32:23</time>
  <version>
   <release>0.1.0</release>
   <api>0.1.0</api>
@@ -42,15 +42,14 @@ Fork HTTP_Download
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
-   <file baseinstalldir="/" md5sum="8383cb204e68596b97b60d402d2a9276" name="/HTTP/Download2.php" role="php" />
-   <file baseinstalldir="/" md5sum="ffc234f271e0cc0bdc09695c0cbd2bd3" name="/HTTP/Download2/Archive.php" role="php" />
-   <file baseinstalldir="/" md5sum="e5ec70c55cd5b2209591b4479d663911" name="/HTTP/Download2/Exception.php" role="php" />
-   <file baseinstalldir="/" md5sum="38a6eaad8cdaaf21ead80c1035239800" name="/HTTP/Download2/PgLOB.php" role="php" />
-   <file baseinstalldir="/" md5sum="304a61b342eb86d4985d76f85b181b83" name="/tests/AllTests.php" role="php" />
-   <file baseinstalldir="/" md5sum="49cb3608e2b33fad6b65df8cb8f49668" name="/tests/data.txt" role="data" />
-   <file baseinstalldir="/" md5sum="17a9344ab96a49384badd3fffcd8578e" name="/tests/helper.inc" role="data" />
-   <file baseinstalldir="/" md5sum="3b2c5e0cc86f9e39f5ea377d621192f6" name="/tests/HTTP_Download2Test.php" role="php" />
-   <file baseinstalldir="/" md5sum="299143f106c9c16e204327135a920335" name="/tests/send.php" role="php" />
+   <file baseinstalldir="/" md5sum="4ef135aa813123afbe7cdb8c0f25f09d" name="HTTP/Download2.php" role="php" />
+   <file baseinstalldir="/" md5sum="ffc234f271e0cc0bdc09695c0cbd2bd3" name="HTTP/Download2/Archive.php" role="php" />
+   <file baseinstalldir="/" md5sum="e5ec70c55cd5b2209591b4479d663911" name="HTTP/Download2/Exception.php" role="php" />
+   <file baseinstalldir="/" md5sum="38a6eaad8cdaaf21ead80c1035239800" name="HTTP/Download2/PgLOB.php" role="php" />
+   <file baseinstalldir="/" md5sum="49cb3608e2b33fad6b65df8cb8f49668" name="tests/data.txt" role="test" />
+   <file baseinstalldir="/" md5sum="17a9344ab96a49384badd3fffcd8578e" name="tests/helper.inc" role="test" />
+   <file baseinstalldir="/" md5sum="0d46b0cfbadc621e69b010203277c9e0" name="tests/HTTP_Download2Test.php" role="test" />
+   <file baseinstalldir="/" md5sum="389304e2b994c9cfdb1468c3f0696106" name="tests/send.php" role="test" />
    <file baseinstalldir="HTTP" md5sum="8f678fe06ab84642adc04a7c7bd3e34b" name="LICENSE" role="doc" />
    <file baseinstalldir="/" md5sum="8fbe49658d0fc380e28c59f458b61aa1" name="README" role="data" />
   </dir>
@@ -107,7 +106,7 @@ Fork HTTP_Download
     <release>stable</release>
     <api>stable</api>
    </stability>
-   <date>2012-01-11</date>
+   <date>2012-01-15</date>
    <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD, revised</license>
    <notes>
 Fork HTTP_Download
