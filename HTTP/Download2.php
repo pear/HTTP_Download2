@@ -4,15 +4,15 @@
 /**
  * HTTP::Download2
  *
- * PHP versions 4 and 5
+ * PHP versions 5
  *
- * @category   HTTP
- * @package    HTTP_Download2
- * @author     Michael Wallner <mike@php.net>
- * @copyright  2003-2005 Michael Wallner
- * @license    BSD, revised
- * @version    CVS: $Id$
- * @link       http://pear.php.net/package/HTTP_Download2
+ * @category  HTTP
+ * @package   HTTP_Download2
+ * @author    Michael Wallner <mike@php.net>
+ * @copyright 2003-2005 Michael Wallner
+ * @license   BSD, revised
+ * @version   CVS: $Id$
+ * @link      http://pear.php.net/package/HTTP_Download2
  */
 
 // {{{ includes
@@ -86,8 +86,12 @@ define('HTTP_DOWNLOAD2_E_INVALID_ARCHIVE_TYPE',  -9);
  * zlib.output_compression enabled in your php.ini, especially
  * if you want to send already gzipped data!
  *
- * @access   public
- * @version  $Revision$
+ * @category  HTTP
+ * @package   HTTP_Download2
+ * @author    Michael Wallner <mike@php.net>
+ * @copyright 2003-2005 Michael Wallner
+ * @license   BSD, revised
+ * @link      http://pear.php.net/package/HTTP_Download2
  */
 class HTTP_Download2
 {
