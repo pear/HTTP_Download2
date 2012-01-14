@@ -27,7 +27,7 @@ It features:
   <active>no</active>
  </lead>
  <date>2012-01-15</date>
- <time>00:36:33</time>
+ <time>01:05:20</time>
  <version>
   <release>0.1.0</release>
   <api>0.1.0</api>
@@ -50,7 +50,7 @@ Avoid HTTP_Request for HTTP_Request2
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
-   <file baseinstalldir="/" md5sum="4ef135aa813123afbe7cdb8c0f25f09d" name="HTTP/Download2.php" role="php" />
+   <file baseinstalldir="/" md5sum="d44aa5be8f6a184aa61832dda1621ee1" name="HTTP/Download2.php" role="php" />
    <file baseinstalldir="/" md5sum="ffc234f271e0cc0bdc09695c0cbd2bd3" name="HTTP/Download2/Archive.php" role="php" />
    <file baseinstalldir="/" md5sum="e5ec70c55cd5b2209591b4479d663911" name="HTTP/Download2/Exception.php" role="php" />
    <file baseinstalldir="/" md5sum="38a6eaad8cdaaf21ead80c1035239800" name="HTTP/Download2/PgLOB.php" role="php" />
@@ -58,7 +58,9 @@ Avoid HTTP_Request for HTTP_Request2
    <file baseinstalldir="/" md5sum="17a9344ab96a49384badd3fffcd8578e" name="tests/helper.inc" role="test" />
    <file baseinstalldir="/" md5sum="0d46b0cfbadc621e69b010203277c9e0" name="tests/HTTP_Download2Test.php" role="test" />
    <file baseinstalldir="/" md5sum="389304e2b994c9cfdb1468c3f0696106" name="tests/send.php" role="test" />
+   <file baseinstalldir="/" md5sum="300bcd9a71f78a0dfe82deb2cbb47289" name="build.xml" role="data" />
    <file baseinstalldir="HTTP" md5sum="8f678fe06ab84642adc04a7c7bd3e34b" name="LICENSE" role="doc" />
+   <file baseinstalldir="/" md5sum="05d716cbeed7a3cd66f3268df3e8dc74" name="phpunit.xml" role="data" />
    <file baseinstalldir="/" md5sum="8fbe49658d0fc380e28c59f458b61aa1" name="README" role="data" />
   </dir>
  </contents>
