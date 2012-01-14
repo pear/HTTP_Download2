@@ -570,7 +570,7 @@ class HTTP_Download2
      */
     function setContentType($content_type = 'application/x-octetstream')
     {
-        if (!preg_match('/^[a-z]+\w*\/[a-z]+[\w.;= -]*$/', $content_type)) {
+        if (!preg_match('/^[a-z]+\w*\/[a-z0-9]+[\w.;=\+ -]*$/', $content_type)) {
             throw new HTTP_Download2_Exception(
                 "Invalid content type '$content_type' supplied.",
                 HTTP_DOWNLOAD2_E_INVALID_CONTENT_TYPE
