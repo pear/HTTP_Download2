@@ -4,15 +4,15 @@
 /**
  * HTTP::Download2::PgLOB
  *
- * PHP versions 4 and 5
+ * PHP version 5
  *
- * @category   HTTP
- * @package    HTTP_Download2
- * @author     Michael Wallner <mike@php.net>
- * @copyright  2003-2005 Michael Wallner
- * @license    BSD, revised
- * @version    CVS: $Id$
- * @link       http://pear.php.net/package/HTTP_Download2
+ * @category  HTTP
+ * @package   HTTP_Download2
+ * @author    Michael Wallner <mike@php.net>
+ * @copyright 2003-2005 Michael Wallner
+ * @license   BSD, revised
+ * @version   CVS: $Id$
+ * @link      http://pear.php.net/package/HTTP_Download2
  */
 
 $GLOBALS['_HTTP_Download2_PgLOB_Connection'] = null;
@@ -33,8 +33,12 @@ stream_register_wrapper('pglob', 'HTTP_Download2_PgLOB');
  * $dl->send()
  * </code>
  *
- * @access  public
- * @version $Revision$
+ * @category  HTTP
+ * @package   HTTP_Download2
+ * @author    Daniel O'Connor <clockwerx@php.net>
+ * @copyright 2012 Daniel O'Connor
+ * @license   BSD, revised
+ * @link      http://pear.php.net/package/HTTP_Download2
  */
 class HTTP_Download2_PgLOB
 {
@@ -167,7 +171,7 @@ class HTTP_Download2_PgLOB
         if (pg_lo_close($this->handle)) {
             return pg_query($this->conn, 'COMMIT');
         } else {
-            pg_query($this->conn ,'ROLLBACK');
+            pg_query($this->conn, 'ROLLBACK');
             return false;
         }
     }

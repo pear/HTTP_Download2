@@ -4,15 +4,15 @@
 /**
  * HTTP::Download2::Archive
  *
- * PHP versions 4 and 5
+ * PHP version 5
  *
- * @category   HTTP
- * @package    HTTP_Download2
- * @author     Michael Wallner <mike@php.net>
- * @copyright  2003-2005 Michael Wallner
- * @license    BSD, revisewd
- * @version    CVS: $Id$
- * @link       http://pear.php.net/package/HTTP_Download2
+ * @category  HTTP
+ * @package   HTTP_Download2
+ * @author    Michael Wallner <mike@php.net>
+ * @copyright 2003-2005 Michael Wallner
+ * @license   BSD, revised
+ * @version   CVS: $Id$
+ * @link      http://pear.php.net/package/HTTP_Download2
  */
 
 /**
@@ -31,8 +31,12 @@ require_once 'System.php';
  *
  * Helper class for sending Archives.
  *
- * @access   public
- * @version  $Revision$
+ * @category  HTTP
+ * @package   HTTP_Download2
+ * @author    Daniel O'Connor <clockwerx@php.net>
+ * @copyright 2012 Daniel O'Connor
+ * @license   BSD, revised
+ * @link      http://pear.php.net/package/HTTP_Download2
  */
 class HTTP_Download2_Archive
 {
@@ -51,51 +55,54 @@ class HTTP_Download2_Archive
      *  );
      * </code>
      *
+     * @param string $name       name the sent archive should have
+     * @param mixed  $files      files/directories
+     * @param string $type       archive type
+     * @param string $add_path   path that should be prepended to the files
+     * @param string $strip_path path that should be stripped from the files
+     *
      * @see         Archive_Tar::createModify()
      * @static
      * @access  public
      * @return  mixed   Returns true on success or PEAR_Error on failure.
-     * @param   string  $name       name the sent archive should have
-     * @param   mixed   $files      files/directories
-     * @param   string  $type       archive type
-     * @param   string  $add_path   path that should be prepended to the files
-     * @param   string  $strip_path path that should be stripped from the files
      */
-    function send($name, $files, $type = HTTP_DOWNLOAD2_TGZ, $add_path = '', $strip_path = '')
-    {
+    function send(
+        $name, $files, $type = HTTP_DOWNLOAD2_TGZ,
+        $add_path = '', $strip_path = ''
+    ) {
         $tmp = System::mktemp();
 
         switch ($type = strToUpper($type))
         {
-            case HTTP_DOWNLOAD2_TAR:
-                include_once 'Archive/Tar.php';
-                $arc = new Archive_Tar($tmp);
-                $content_type = 'x-tar';
+        case HTTP_DOWNLOAD2_TAR:
+            include_once 'Archive/Tar.php';
+            $arc = new Archive_Tar($tmp);
+            $content_type = 'x-tar';
             break;
 
-            case HTTP_DOWNLOAD2_TGZ:
-                include_once 'Archive/Tar.php';
-                $arc = new Archive_Tar($tmp, 'gz');
-                $content_type = 'x-gzip';
+        case HTTP_DOWNLOAD2_TGZ:
+            include_once 'Archive/Tar.php';
+            $arc = new Archive_Tar($tmp, 'gz');
+            $content_type = 'x-gzip';
             break;
 
-            case HTTP_DOWNLOAD2_BZ2:
-                include_once 'Archive/Tar.php';
-                $arc = new Archive_Tar($tmp, 'bz2');
-                $content_type = 'x-bzip2';
+        case HTTP_DOWNLOAD2_BZ2:
+            include_once 'Archive/Tar.php';
+            $arc = new Archive_Tar($tmp, 'bz2');
+            $content_type = 'x-bzip2';
             break;
 
-            case HTTP_DOWNLOAD2_ZIP:
-                include_once 'Archive/Zip.php';
-                $arc = new Archive_Zip($tmp);
-                $content_type = 'x-zip';
+        case HTTP_DOWNLOAD2_ZIP:
+            include_once 'Archive/Zip.php';
+            $arc = new Archive_Zip($tmp);
+            $content_type = 'x-zip';
             break;
 
-            default:
-                throw new HTTP_Download2_Exception(
-                    'Archive type not supported: ' . $type,
-                    HTTP_DOWNLOAD2_E_INVALID_ARCHIVE_TYPE
-                );
+        default:
+            throw new HTTP_Download2_Exception(
+                'Archive type not supported: ' . $type,
+                HTTP_DOWNLOAD2_E_INVALID_ARCHIVE_TYPE
+            );
         }
 
         if ($type == HTTP_DOWNLOAD2_ZIP) {
