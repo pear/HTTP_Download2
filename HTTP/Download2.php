@@ -784,7 +784,7 @@ class HTTP_Download2
     function generateETag()
     {
         if (!$this->etag) {
-            if ($this->data) {
+            if (isset($this->data)) {
                 $md5 = md5($this->data);
             } else {
                 $mtime = time();
@@ -853,7 +853,7 @@ class HTTP_Download2
             $this->sendHeaders();
         }
 
-        if ($this->data) {
+        if (isset($this->data)) {
             while (($length -= $this->bufferSize) > 0) {
                 $this->flush(substr($this->data, $offset, $this->bufferSize));
                 $this->throttleDelay and $this->sleep();
