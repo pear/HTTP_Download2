@@ -827,11 +827,12 @@ class HTTP_Download2
     /**
      * Send chunk of data
      *
+     * @param array  $chunk start and end offset of the chunk to send
+     * @param string $cType actual content type
+     * @param string $bound boundary for multipart/byteranges
+     *
      * @access  protected
      * @return  mixed   Returns true on success or PEAR_Error on failure.
-     * @param   array   $chunk  start and end offset of the chunk to send
-     * @param   string  $cType  actual content type
-     * @param   string  $bound  boundary for multipart/byteranges
      */
     function sendChunk($chunk, $cType = null, $bound = null)
     {
@@ -860,7 +861,9 @@ class HTTP_Download2
                 $offset += $this->bufferSize;
             }
             if ($length) {
-                $this->flush(substr($this->data, $offset, $this->bufferSize + $length));
+                $this->flush(
+                    substr($this->data, $offset, $this->bufferSize + $length)
+                );
             }
         } else {
             if (!is_resource($this->handle)) {
@@ -877,12 +880,14 @@ class HTTP_Download2
                     $this->flush(fread($this->handle, $this->bufferSize));
                     $this->throttleDelay and $this->sleep();
                 }
+
                 if ($length) {
                     $this->flush(fread($this->handle, $this->bufferSize + $length));
                 }
-             }
-         }
-         return true;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -909,7 +914,7 @@ class HTTP_Download2
 
         $parts = array();
         $satisfiable = false;
-        foreach (explode(',', $ranges) as $chunk){
+        foreach (explode(',', $ranges) as $chunk) {
             list($o, $e) = explode('-', trim($chunk));
 
             // If the last-byte-pos value is present, it MUST be greater than
@@ -960,8 +965,10 @@ class HTTP_Download2
         // If the byte-range-set is unsatisfiable, the server SHOULD return a
         // response with a status of 416 (Requested range not satisfiable).
         if (!$satisfiable) {
-            throw new HTTP_Download2_Exception('Error processing range request',
-                                      HTTP_DOWNLOAD2_E_INVALID_REQUEST);
+            throw new HTTP_Download2_Exception(
+                'Error processing range request',
+                HTTP_DOWNLOAD2_E_INVALID_REQUEST
+            );
         }
         //$this->sortChunks($parts);
         return $this->mergeChunks($parts);
@@ -979,7 +986,8 @@ class HTTP_Download2
      */
     function sortChunks(&$chunks)
     {
-        $sortFunc = create_function('$a,$b',
+        $sortFunc = create_function(
+            '$a,$b',
             'if ($a[0] == $b[0]) {
                 if ($a[1] == $b[1]) {
                     return 0;
@@ -988,7 +996,8 @@ class HTTP_Download2
                         || $b[1] == "*") ? -1 : 1;
              }
 
-             return ($a[0] < $b[0]) ? -1 : 1;');
+             return ($a[0] < $b[0]) ? -1 : 1;'
+        );
 
         usort($chunks, $sortFunc);
     }
@@ -1057,8 +1066,15 @@ class HTTP_Download2
      */
     function getRanges()
     {
-        return preg_match('/^bytes=((\d+-|\d+-\d+|-\d+)(, ?(\d+-|\d+-\d+|-\d+))*)$/',
-            @$_SERVER['HTTP_RANGE'], $matches) ? $matches[1] : array();
+        $match = preg_match(
+            '/^bytes=((\d+-|\d+-\d+|-\d+)(, ?(\d+-|\d+-\d+|-\d+))*)$/',
+            @$_SERVER['HTTP_RANGE'], $matches
+        );
+
+        if ($match) {
+            return $matches[1];
+        }
+        return array();
     }
 
     /**
@@ -1070,11 +1086,15 @@ class HTTP_Download2
     function isCached()
     {
         return (
-            (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&
-            $this->lastModified == strtotime(current($a = explode(
-                ';', $_SERVER['HTTP_IF_MODIFIED_SINCE'])))) ||
-            (isset($_SERVER['HTTP_IF_NONE_MATCH']) &&
-            $this->compareAsterisk('HTTP_IF_NONE_MATCH', $this->etag))
+            (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) 
+            && $this->lastModified == strtotime(
+                current(
+                    $a = explode(';', $_SERVER['HTTP_IF_MODIFIED_SINCE'])
+                )
+            )) 
+            ||
+            (isset($_SERVER['HTTP_IF_NONE_MATCH']) 
+            && $this->compareAsterisk('HTTP_IF_NONE_MATCH', $this->etag))
         );
     }
 
@@ -1086,15 +1106,19 @@ class HTTP_Download2
      */
     function isValidRange()
     {
-        if (isset($_SERVER['HTTP_IF_MATCH']) &&
-            !$this->compareAsterisk('HTTP_IF_MATCH', $this->etag)) {
+        if (isset($_SERVER['HTTP_IF_MATCH']) 
+            && !$this->compareAsterisk('HTTP_IF_MATCH', $this->etag)
+        ) {
             return false;
         }
-        if (isset($_SERVER['HTTP_IF_RANGE']) &&
-                  $_SERVER['HTTP_IF_RANGE'] !== $this->etag &&
-                  strtotime($_SERVER['HTTP_IF_RANGE']) !== $this->lastModified) {
+
+        if (isset($_SERVER['HTTP_IF_RANGE']) 
+            && $_SERVER['HTTP_IF_RANGE'] !== $this->etag 
+            &&  strtotime($_SERVER['HTTP_IF_RANGE']) !== $this->lastModified
+        ) {
             return false;
         }
+
         if (isset($_SERVER['HTTP_IF_UNMODIFIED_SINCE'])) {
             $lm = current($a = explode(';', $_SERVER['HTTP_IF_UNMODIFIED_SINCE']));
             if (strtotime($lm) !== $this->lastModified) {
@@ -1113,10 +1137,11 @@ class HTTP_Download2
     /**
      * Compare against an asterisk or check for equality
      *
+     * @param string $svar    key for the $_SERVER array
+     * @param string $compare string to compare
+     *
      * @access  protected
      * @return  bool
-     * @param   string  key for the $_SERVER array
-     * @param   string  string to compare
      */
     function compareAsterisk($svar, $compare)
     {
@@ -1152,9 +1177,10 @@ class HTTP_Download2
     /**
      * Flush
      *
+     * @param string $data Data
+     *
      * @access  protected
      * @return  void
-     * @param   string  $data
      */
     function flush($data = '')
     {
