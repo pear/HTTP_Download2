@@ -27,14 +27,14 @@ It features:
   <active>no</active>
  </lead>
  <date>2012-01-15</date>
- <time>00:35:00</time>
+ <time>00:36:33</time>
  <version>
   <release>0.1.0</release>
   <api>0.1.0</api>
  </version>
  <stability>
-  <release>stable</release>
-  <api>stable</api>
+  <release>beta</release>
+  <api>beta</api>
  </stability>
  <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD, revised</license>
  <notes>
@@ -111,8 +111,8 @@ Avoid HTTP_Request for HTTP_Request2
     <api>0.1.0</api>
    </version>
    <stability>
-    <release>stable</release>
-    <api>stable</api>
+    <release>beta</release>
+    <api>beta</api>
    </stability>
    <date>2012-01-15</date>
    <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD, revised</license>
