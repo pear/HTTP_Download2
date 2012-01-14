@@ -27,7 +27,7 @@ It features:
   <active>no</active>
  </lead>
  <date>2012-01-15</date>
- <time>00:32:23</time>
+ <time>00:35:00</time>
  <version>
   <release>0.1.0</release>
   <api>0.1.0</api>
@@ -39,6 +39,14 @@ It features:
  <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD, revised</license>
  <notes>
 Fork HTTP_Download
+PHP5+
+Bug #17703 MimeType validated incorrectly 
+Bug #18912 PHP5 E_strict fixes for Pear::isError
+Bug #17418 Deprecated warnings in PHP 5.3
+Bug #18981 $dl-&gt;setData(&apos;&apos;) results in an infinite loop
+Bug #19122 upgrade PHPUnit require statements (for PEAR QA Team)
+Drop PEAR dep
+Avoid HTTP_Request for HTTP_Request2
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -110,6 +118,14 @@ Fork HTTP_Download
    <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD, revised</license>
    <notes>
 Fork HTTP_Download
+PHP5+
+Bug #17703 MimeType validated incorrectly 
+Bug #18912 PHP5 E_strict fixes for Pear::isError
+Bug #17418 Deprecated warnings in PHP 5.3
+Bug #18981 $dl-&gt;setData(&apos;&apos;) results in an infinite loop
+Bug #19122 upgrade PHPUnit require statements (for PEAR QA Team)
+Drop PEAR dep
+Avoid HTTP_Request for HTTP_Request2
    </notes>
   </release>
  </changelog>
