@@ -635,10 +635,11 @@ class HTTP_Download2
      *   o HTTP headers were already sent (HTTP_DOWNLOAD2_E_HEADERS_SENT)
      *   o HTTP Range was invalid (HTTP_DOWNLOAD2_E_INVALID_REQUEST)
      *
+     * @param bool $autoSetContentDisposition Whether to set the
+     *             Content-Disposition header if it isn't already.
+     *
      * @access  public
      * @return  mixed   Returns true on success or PEAR_Error on failure.
-     * @param   bool    $autoSetContentDisposition Whether to set the
-     *                  Content-Disposition header if it isn't already.
      */
     function send($autoSetContentDisposition = true)
     {
@@ -653,8 +654,9 @@ class HTTP_Download2
             @set_time_limit(0);
         }
 
-        if ($autoSetContentDisposition &&
-            !isset($this->headers['Content-Disposition'])) {
+        if ($autoSetContentDisposition 
+            && !isset($this->headers['Content-Disposition'])
+        ) {
             $this->setContentDisposition();
         }
 
@@ -670,7 +672,8 @@ class HTTP_Download2
         }
 
         if (ob_get_level()) {
-            while (@ob_end_clean());
+            while (@ob_end_clean()) {
+            }
         }
 
         if ($this->gzip) {
@@ -716,15 +719,15 @@ class HTTP_Download2
     /**
      * Static send
      *
+     * @param array $params associative array of parameters
+     * @param bool  $guess  whether HTTP_Download2::guessContentType()
+     *                               should be called
+     *
      * @see     HTTP_Download2::HTTP_Download2()
      * @see     HTTP_Download2::send()
-     *
      * @static
      * @access  public
      * @return  mixed   Returns true on success or PEAR_Error on failure.
-     * @param   array   $params     associative array of parameters
-     * @param   bool    $guess      whether HTTP_Download2::guessContentType()
-     *                               should be called
      */
     function staticSend($params, $guess = false)
     {
@@ -751,26 +754,30 @@ class HTTP_Download2
      *  );
      * </code>
      *
+     * @param string $name       name the sent archive should have
+     * @param mixed  $files      files/directories
+     * @param string $type       archive type
+     * @param string $add_path   path that should be prepended to the files
+     * @param string $strip_path path that should be stripped from the files
+     *
      * @see         Archive_Tar::createModify()
      * @deprecated  use HTTP_Download2_Archive::send()
      * @static
      * @access  public
      * @return  mixed   Returns true on success or PEAR_Error on failure.
-     * @param   string  $name       name the sent archive should have
-     * @param   mixed   $files      files/directories
-     * @param   string  $type       archive type
-     * @param   string  $add_path   path that should be prepended to the files
-     * @param   string  $strip_path path that should be stripped from the files
      */
-    function sendArchive(   $name,
-                            $files,
-                            $type       = HTTP_DOWNLOAD2_TGZ,
-                            $add_path   = '',
-                            $strip_path = '')
-    {
-        require_once 'HTTP/Download2/Archive.php';
-        return HTTP_Download2_Archive::send($name, $files, $type,
-            $add_path, $strip_path);
+    function sendArchive(
+        $name,
+        $files,
+        $type       = HTTP_DOWNLOAD2_TGZ,
+        $add_path   = '',
+        $strip_path = ''
+    ) {
+        include_once 'HTTP/Download2/Archive.php';
+        return HTTP_Download2_Archive::send(
+            $name, $files, $type,
+            $add_path, $strip_path
+        );
     }
     // }}}
 
@@ -790,8 +797,14 @@ class HTTP_Download2
                 $mtime = time();
                 $ino   = 0;
                 $size  = mt_rand();
-                extract(is_resource($this->handle) ? fstat($this->handle)
-                                                   : stat($this->file));
+
+                if (is_resource($this->handle)) {
+                    $content = fstat($this->handle);
+                } else {
+                    stat($this->file);
+                }
+
+                extract($content);
                 $md5 = md5($mtime .'='. $ino .'='. $size);
             }
             $this->etag = '"' . $md5 . '-' . crc32($md5) . '"';
@@ -802,9 +815,10 @@ class HTTP_Download2
     /**
      * Send multiple chunks
      *
+     * @param array $chunks Chunks to send
+     *
      * @access  protected
      * @return  mixed   Returns true on success or PEAR_Error on failure.
-     * @param   array   $chunks
      */
     function sendChunks($chunks)
     {
@@ -814,13 +828,12 @@ class HTTP_Download2
 
         $bound = uniqid('HTTP_DOWNLOAD-', true);
         $cType = $this->headers['Content-Type'];
-        $this->headers['Content-Type'] =
-            'multipart/byteranges; boundary=' . $bound;
+        $this->headers['Content-Type'] = 'multipart/byteranges; boundary=' . $bound;
         $this->sendHeaders();
-        foreach ($chunks as $chunk){
+        foreach ($chunks as $chunk) {
             $this->sendChunk($chunk, $cType, $bound);
         }
-        #echo "\r\n--$bound--\r\n";
+
         return true;
     }
 
